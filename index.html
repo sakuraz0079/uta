@@ -94,7 +94,7 @@
                 <p class="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
                     <i class="fa-solid fa-sparkles text-[9px]"></i> UtaLog Assistant
                 </p>
-                <p id="avatar-bubble" class="text-xs text-slate-300 leading-relaxed font-medium">今日もいい歌声を残しましょう！iCloudの「アーティスト名_曲名」WAVファイルを読み込めますよ！</p>
+                <p id="avatar-bubble" class="text-xs text-slate-300 leading-relaxed font-medium">今日もいい歌声を残しましょう！iCloudの「日付_アーティスト名_曲名_バージョン情報」WAVファイルを読み込めますよ！</p>
             </div>
         </div>
 
@@ -282,7 +282,7 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">iCloud 1タップフォルダ同期</h3>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-relaxed pr-16">
-                    iCloud内の録音フォルダやWAVファイルをまとめて同期します。ファイル名は <span class="text-violet-400 font-bold">「アーティスト名_曲名.wav」</span> 形式に対応しており、UtaLogが自動パースします。
+                    iCloud内の録音フォルダやWAVファイルをまとめて同期します。ファイル名は <span class="text-violet-400 font-bold">「日付_アーティスト名_曲名_バージョン.wav」</span> 形式に対応しており、UtaLogが自動パースします。
                 </p>
 
                 <!-- ディレクトリ/ファイルピッカー -->
@@ -1540,7 +1540,7 @@
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 
-                // 大容量すぎるWAVファイルの境界チェック
+                // 大容量 WACファイルの境界チェック
                 const sizeMB = file.size / (1024 * 1024);
                 if (sizeMB > 150) {
                     console.warn(`大容量ファイルを検出しました: ${file.name} (${sizeMB.toFixed(1)}MB)`);
@@ -1562,14 +1562,26 @@
                     // 新規候補としてパース
                     const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
                     
-                    // WAV「アーティスト名_曲名.wav」以外の区切り文字（ハイフンやスペース）でも柔軟に対応
+                    // WAV「日付_アーティスト名_曲名_バージョン情報.wav」形式のパース
                     let estimatedArtist = "自主歌唱録音";
                     let estimatedTitle = rawName;
+                    let estimatedNotes = "";
                     
                     if (rawName.includes('_')) {
                         const parts = rawName.split('_');
-                        estimatedArtist = parts[0].trim();
-                        estimatedTitle = parts[1].trim();
+                        if (parts.length >= 3) {
+                            // parts[0]は日付 (例: 20260521)
+                            estimatedArtist = parts[1].trim(); // アーティスト名
+                            estimatedTitle = parts[2].trim();  // 曲名
+                            
+                            // parts[3]以降はバージョン情報など
+                            let versionInfo = parts.slice(3).join('_').trim();
+                            estimatedNotes = `[録音日: ${parts[0].trim()}` + (versionInfo ? ` | ver: ${versionInfo}]` : `]`);
+                        } else if (parts.length === 2) {
+                            // フォールバック（日付なし：アーティスト名_曲名形式の場合）
+                            estimatedArtist = parts[0].trim();
+                            estimatedTitle = parts[1].trim();
+                        }
                     } else if (rawName.includes('-')) {
                         const parts = rawName.split('-');
                         estimatedArtist = parts[0].trim();
@@ -1587,7 +1599,7 @@
                         chest: "",
                         falsetto: "",
                         category: "J-POP",
-                        notes: ""
+                        notes: estimatedNotes // パースしたメタデータをnotesへ引き継ぐ
                     });
                 }
             }
@@ -1686,7 +1698,7 @@
             return null;
         }
 
-        // 新規検出曲の一括インポート (AI検索 / ジャンル自動追加対応)
+        // 新規検出曲の一括インポート (AI検索 / ジャンル自動追加 & 新WAVファイル名形式対応)
         async function importDetectedSongs() {
             if (detectedNewSongs.length === 0) return;
 
@@ -1712,7 +1724,7 @@
                 let chest = "hiA";
                 let falsetto = "hiC";
                 let category = "J-POP";
-                let notes = "録音完了しました！";
+                let notes = ns.notes || "録音完了しました！";
 
                 if (isAiEnabled) {
                     const aiData = await fetchSongDataFromGeminiWithBackoff(ns.artist, ns.title);
@@ -1720,7 +1732,8 @@
                         chest = aiData.chest || "hiA";
                         falsetto = aiData.falsetto || "hiC";
                         category = aiData.category || "J-POP";
-                        notes = aiData.notes || "AIによる自動調査アドバイス";
+                        // 元々のファイル名由来の日付/バージョン情報(ns.notes)に、AI歌唱アドバイスをマージする
+                        notes = (ns.notes ? `${ns.notes} | ` : '') + (aiData.notes || "AIによる自動調査アドバイス");
                     }
                 }
 
@@ -1826,6 +1839,7 @@
             modal.classList.remove('hidden');
         }
 
+        // フォームを閉じる
         function closeSongModal() {
             document.getElementById('song-modal').classList.add('hidden');
         }
@@ -1963,9 +1977,9 @@
                     stars: 4,
                     key: 0,
                     status: '録音完了',
-                    fileName: 'Vaundy_怪獣の花唄.wav',
+                    fileName: '20260315_Vaundy_怪獣の花唄_take1.wav',
                     category: 'J-POP',
-                    notes: 'サビのhiAが連続する部分はブレスを十分に。ラスト転調は気合。',
+                    notes: '[録音日: 20260315 | ver: take1] | サビのhiAが連続する部分はブレスを十分に。ラスト転調は気合。',
                     updatedAt: Date.now() - 3600000
                 },
                 {
@@ -1978,9 +1992,9 @@
                     stars: 3,
                     key: -2,
                     status: '練習中',
-                    fileName: 'YOASOBI_アイドル.wav',
+                    fileName: '20260420_YOASOBI_アイドル_v2.wav',
                     category: 'アニソン',
-                    notes: 'テンポが早くてブレスの位置が難しい。キーは-2で安定。',
+                    notes: '[録音日: 20260420 | ver: v2] | テンポが早くてブレスの位置が難しい。キーは-2で安定。',
                     updatedAt: Date.now() - 7200000
                 },
                 {
@@ -1993,9 +2007,9 @@
                     stars: 5,
                     key: 4,
                     status: '録音完了',
-                    fileName: 'あいみょん_マリーゴールド_mid2G.wav',
+                    fileName: '20260501_あいみょん_マリーゴールド_master.wav',
                     category: 'J-POP',
-                    notes: '最高音も低めで歌いやすい。自分の声質にとても合っている！',
+                    notes: '[録音日: 20260501 | ver: master] | 最高音も低めで歌いやすい。自分の声質にとても合っている！',
                     updatedAt: Date.now()
                 }
             ];
