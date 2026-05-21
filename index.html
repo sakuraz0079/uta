@@ -68,7 +68,7 @@
             </div>
             <div>
                 <h1 class="text-sm font-black tracking-wider bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">UTALOG MOBILE</h1>
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">My Vocals Archive</p>
+                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">v2.1 AI Sync Edition</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -87,11 +87,14 @@
         <div id="character-banner" class="bg-slate-900/60 border border-slate-800/60 rounded-2xl p-3 flex items-center gap-3.5 shadow-md">
             <div class="relative flex-shrink-0">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur opacity-30"></div>
-                <img id="avatar-img" src="Gemini_Generated_Image_dywrhkdywrhkdywr.png" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=utalog'" class="relative w-12 h-12 rounded-full object-cover border border-slate-700 bg-slate-900" alt="Avatar">
+                <!-- ユーザーから提供されたアバターを状況で切り替える -->
+                <img id="avatar-img" src="001.png" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=utalog'" class="relative w-12 h-12 rounded-full object-cover border border-slate-700 bg-slate-900 transition-all duration-300" alt="Avatar">
             </div>
-            <div class="space-y-0.5">
-                <p class="text-[10px] font-bold text-violet-400 uppercase tracking-widest">Assistant</p>
-                <p id="avatar-bubble" class="text-xs text-slate-300 leading-relaxed font-medium">今日もいい歌声を残しましょう！iCloudフォルダを同期するとWAVをすぐに再生できますよ。</p>
+            <div class="space-y-0.5 flex-1 min-w-0">
+                <p class="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
+                    <i class="fa-solid fa-sparkles text-[9px]"></i> UtaLog Assistant
+                </p>
+                <p id="avatar-bubble" class="text-xs text-slate-300 leading-relaxed font-medium">今日もいい歌声を残しましょう！iCloudの「アーティスト名_曲名」WAVファイルを読み込めますよ！</p>
             </div>
         </div>
 
@@ -123,7 +126,12 @@
                     <button onclick="toggleFilterDetails()" class="text-[11px] text-slate-400 hover:text-slate-200 font-bold flex items-center gap-1">
                         <i id="filter-chevron" class="fa-solid fa-chevron-right text-[9px] transition-transform"></i> 詳細フィルター
                     </button>
-                    <button onclick="clearFilters()" class="text-[10px] text-violet-400 hover:text-violet-300 font-bold">条件クリア</button>
+                    <div class="flex items-center gap-3">
+                        <span id="active-match-badge" class="hidden bg-violet-500/10 text-violet-400 border border-violet-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                            音域マッチ中
+                        </span>
+                        <button onclick="clearFilters()" class="text-[10px] text-violet-400 hover:text-violet-300 font-bold">条件クリア</button>
+                    </div>
                 </div>
 
                 <div id="filter-details-panel" class="hidden grid grid-cols-2 gap-3 pt-2">
@@ -131,10 +139,10 @@
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">地声最高音</label>
                         <select id="filter-chest" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none">
                             <option value="">すべて</option>
-                            <option value="mid2G">mid2G以下</option>
-                            <option value="hiA">hiA以下</option>
-                            <option value="hiB">hiB以下</option>
-                            <option value="hiC">hiC以下</option>
+                            <option value="mid2G">mid2G</option>
+                            <option value="hiA">hiA</option>
+                            <option value="hiB">hiB</option>
+                            <option value="hiC">hiC</option>
                             <option value="hiD">hiD以上</option>
                         </select>
                     </div>
@@ -142,10 +150,10 @@
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">裏声最高音</label>
                         <select id="filter-falsetto" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none">
                             <option value="">すべて</option>
-                            <option value="hiA">hiA以下</option>
-                            <option value="hiB">hiB以下</option>
-                            <option value="hiC">hiC以下</option>
-                            <option value="hiE">hiE以下</option>
+                            <option value="hiA">hiA</option>
+                            <option value="hiB">hiB</option>
+                            <option value="hiC">hiC</option>
+                            <option value="hiE">hiE</option>
                             <option value="hiG">hiG以上</option>
                         </select>
                     </div>
@@ -260,22 +268,31 @@
         <div id="tab-sync" class="tab-pane hidden space-y-4">
             <!-- フォルダマッパー解説 -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 opacity-10 translate-x-3 translate-y-3">
-                    <img src="お願い.png" onerror="this.style.display='none'" class="w-28 h-28 object-contain">
+                <div class="absolute top-0 right-0 opacity-15 translate-x-1 translate-y-1">
+                    <img src="お願い.png" onerror="this.style.display='none'" class="w-24 h-24 object-contain">
                 </div>
                 <div class="flex items-center space-x-2 text-violet-400">
                     <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">iCloud 1タップフォルダ同期</h3>
                 </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed">
-                    iCloud内の録音フォルダやWAVファイル群を同期します。すでに登録済みの曲はファイル名と自動照合され、まだUtaLogに登録されていない新曲WAVファイルが見つかった場合は「自動新規インポート候補」として一括でリストに追加できます。
+                <p class="text-[11px] text-slate-400 leading-relaxed pr-16">
+                    iCloud内の録音フォルダやWAVファイルをまとめて同期します。ファイル名は <span class="text-violet-400 font-bold">「アーティスト名_曲名.wav」</span> 形式に対応しており、UtaLogが自動パースします。
                 </p>
 
                 <!-- ディレクトリ/ファイルピッカー -->
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/85 flex flex-col gap-3">
-                    <div class="text-[10px] text-slate-400 flex items-start gap-1.5">
-                        <i class="fa-solid fa-circle-info text-violet-400 mt-0.5 flex-shrink-0"></i>
-                        <span>WAVファイル名に曲名が含まれていると、自動認識率が格段にアップします。(例: 「アイドル.wav」「マリーゴールド_hiA.wav」)</span>
+                    <!-- AI最高音調査のトグル -->
+                    <div class="flex items-center justify-between border-b border-slate-900 pb-2">
+                        <div class="space-y-0.5">
+                            <span class="text-xs font-bold text-slate-300 flex items-center gap-1">
+                                <i class="fa-solid fa-robot text-violet-400"></i> AI最高音・アドバイス自動調査
+                            </span>
+                            <p class="text-[9px] text-slate-500">GeminiがWebから音域と歌い方アドバイスを検索します</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="ai-lookup-toggle" checked class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-600"></div>
+                        </label>
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -294,7 +311,17 @@
             </div>
 
             <!-- 新規追加候補インポーター (自動検知された場合のみ表示) -->
-            <div id="new-songs-detected-box" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3 shadow-xl">
+            <div id="new-songs-detected-box" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3 shadow-xl relative overflow-hidden">
+                <!-- 進捗インジケータオーバーレイ -->
+                <div id="import-progress-overlay" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center space-y-3 hidden z-30">
+                    <img id="import-loader-img" src="031.png" class="w-16 h-16 animate-slow-spin rounded-full">
+                    <p class="text-xs font-bold text-slate-200">AIがWebから音域データを調査中...</p>
+                    <div class="w-2/3 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="import-progress-bar" class="h-full bg-violet-500 w-0 transition-all duration-300"></div>
+                    </div>
+                    <span id="import-progress-text" class="text-[10px] text-slate-400 font-bold">0 / 0 曲 完了</span>
+                </div>
+
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2 text-amber-400">
                         <i class="fa-solid fa-circle-exclamation text-sm animate-bounce"></i>
@@ -303,7 +330,7 @@
                     <span id="detected-count-badge" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-black px-2.5 py-0.5 rounded-full">3曲</span>
                 </div>
                 <p class="text-[11px] text-slate-400">
-                    選択したiCloudフォルダから、データベース未登録の音声ファイルが見つかりました。以下の曲名・アーティスト名で一括インポートしますか？
+                    WAVファイル名からパースされた以下の曲をインポートします。AI調査が有効な場合、各曲の最高音や難易度アドバイスが自動登録されます！
                 </p>
                 <div id="detected-songs-list" class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar border-y border-slate-800 py-2">
                     <!-- 検知された曲のプレビュー -->
@@ -366,7 +393,8 @@
             <div class="flex items-center space-x-3 w-1/2">
                 <div class="relative w-11 h-11 flex-shrink-0">
                     <div class="absolute inset-0 bg-gradient-to-tr from-violet-500 to-fuchsia-500 rounded-full blur opacity-40 animate-pulse"></div>
-                    <img id="player-avatar-img" src="歌う.png" onerror="this.src='https://api.dicebear.com/7.x/shapes/svg?seed=nowplaying'" class="relative w-11 h-11 rounded-full object-cover border border-slate-700 bg-slate-900 animate-slow-spin" alt="Now Playing">
+                    <!-- 再生中はサングラスノリノリアバター -->
+                    <img id="player-avatar-img" src="031.png" onerror="this.src='https://api.dicebear.com/7.x/shapes/svg?seed=nowplaying'" class="relative w-11 h-11 rounded-full object-cover border border-slate-700 bg-slate-900 transition-all duration-300" alt="Now Playing">
                 </div>
                 <div class="truncate space-y-0.5">
                     <p id="player-song-title" class="text-xs font-black text-slate-100 truncate">再生していません</p>
@@ -409,7 +437,7 @@
             </div>
 
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-800">
-                <img src="ギター弾く.png" onerror="this.style.display='none'" class="w-10 h-10 object-contain">
+                <img src="001.png" class="w-10 h-10 object-contain">
                 <div>
                     <h2 id="modal-title" class="text-sm font-black text-slate-100">曲を追加する</h2>
                     <p class="text-[10px] text-slate-400">歌ったデータや最高音などのパラメータを入力します</p>
@@ -473,7 +501,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">iCloudファイル名 (手動紐付用)</label>
-                        <input type="text" id="form-filename" placeholder="例: アイドル.wav" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-lg px-3 py-2 focus:outline-none text-slate-100">
+                        <input type="text" id="form-filename" placeholder="例: アーティスト名_曲名.wav" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-lg px-3 py-2 focus:outline-none text-slate-100">
                     </div>
                 </div>
 
@@ -532,6 +560,10 @@
         let originalShuffleList = []; // シャッフル再生前の順番キープ用
         let detectedNewSongs = []; // iCloudから検知された新規曲候補
 
+        // Gemini API 用設定
+        const apiKey = ""; // ランタイムで自動注入されます
+        const geminiModel = "gemini-2.5-flash-preview-09-2025";
+
         // 音声プレイヤー関連
         const audioEl = document.getElementById('main-audio');
 
@@ -542,10 +574,12 @@
             playlistMode: "プレイリストモード突入！「最新15曲」は追加が新しい順に自動でノンストップ再生します！",
             recordingDone: "録音完了のステータスがついた曲は自信作ですね！どんどん蓄積していきましょう！",
             syncRequest: "iCloudフォルダをまだ同期していません。「iCloud同期」タブからフォルダを読み込ませるだけで再生可能になります！",
-            emptyList: "まだ曲が登録されていません。まずは下の「デモ曲を生成」するか、自分で右上の「新規追加」を押してみましょう！"
+            emptyList: "まだ曲が登録されていません。まずは下の「デモ曲を生成」するか、自分で右上の「新規追加」を押してみましょう！",
+            noResult: "うーん、該当する曲が見つかりませんでした。条件を変えて検索してみましょう！",
+            musicMatched: "おっ、その曲と音域が似ていて歌いやすい他の曲をマッチングして絞り込みましたよ！"
         };
 
-        // アバター変更関数
+        // アバター変更関数（画像を状況で細かく切り替える）
         function changeAvatarMsg(msgKey, textOverride = null) {
             const bubble = document.getElementById('avatar-bubble');
             const avatarImg = document.getElementById('avatar-img');
@@ -556,15 +590,19 @@
                 bubble.innerText = avatarMessages[msgKey];
             }
 
-            // シーンに合わせてアバター画像も入れ替える
+            // キャラクター画像を細かく適用する
             if (msgKey === 'recordingDone' || msgKey === 'playlistMode') {
-                avatarImg.src = '歌う.png';
+                avatarImg.src = '011.png'; // ハート目
             } else if (msgKey === 'syncRequest' || msgKey === 'emptyList') {
-                avatarImg.src = 'お願い.png';
+                avatarImg.src = '024.png'; // うるうる涙
             } else if (msgKey === 'syncSuccess') {
-                avatarImg.src = 'Gemini_Generated_Image_dywrhkdywrhkdywr.png';
+                avatarImg.src = '006.png'; // 笑顔
+            } else if (msgKey === 'noResult') {
+                avatarImg.src = '010.png'; // 困り顔
+            } else if (msgKey === 'musicMatched') {
+                avatarImg.src = '031.png'; // サングラス
             } else {
-                avatarImg.src = 'ギター弾く.png';
+                avatarImg.src = '001.png'; // 通常真顔
             }
         }
 
@@ -660,13 +698,17 @@
             if (list.length === 0) {
                 container.innerHTML = `
                     <div class="bg-slate-900/40 border border-slate-900 border-dashed rounded-3xl p-8 text-center space-y-3.5">
-                        <img src="Gemini_Generated_Image_dywrhkdywrhkdywr.png" class="w-24 h-24 mx-auto object-contain rounded-full opacity-60">
+                        <img src="010.png" class="w-24 h-24 mx-auto object-contain rounded-full opacity-80">
                         <div class="space-y-1">
                             <p class="text-xs font-black text-slate-400">該当する曲が見つかりません</p>
-                            <p class="text-[10px] text-slate-600">検索語句やフィルター条件を変えてみてください。</p>
+                            <p class="text-[10px] text-slate-600">新しい曲を登録するか、フィルター条件をリセットしてみてください。</p>
                         </div>
                     </div>
                 `;
+                // 検索が0件のとき、アバターメッセージを困り顔に変更
+                if (filteredSongs !== null) {
+                    changeAvatarMsg('noResult');
+                }
                 return;
             }
 
@@ -685,7 +727,7 @@
                     starsHtml += `<i class="fa-solid fa-star text-[9px] ${i <= (song.stars || 0) ? 'text-amber-500' : 'text-slate-700'}"></i>`;
                 }
 
-                // 難易度表示のヘルパー (炎、もしくは小さいドットなど。ここでは炎アイコンを小さく表示)
+                // 難易度表示のヘルパー (炎アイコン)
                 let diffHtml = '';
                 for (let i = 1; i <= 5; i++) {
                     diffHtml += `<i class="fa-solid fa-fire text-[9px] ${i <= (song.difficulty || 0) ? 'text-rose-500' : 'text-slate-700'}"></i>`;
@@ -745,7 +787,7 @@
 
                     <!-- 下部開閉メモ & 難易度レーティング -->
                     <div class="mt-3 pt-2.5 border-t border-slate-800/40 flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
                             <div class="flex items-center gap-1">
                                 <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">完成:</span>
                                 <div class="flex gap-0.5">${starsHtml}</div>
@@ -756,10 +798,16 @@
                             </div>
                         </div>
                         
-                        <!-- プレイリスト追加のミニランチャー -->
-                        <button onclick="showPlaylistSelector('${song.id}', event)" class="text-[9px] text-slate-400 hover:text-violet-400 font-bold flex items-center gap-1 border border-slate-800 bg-slate-950 px-2 py-0.5 rounded-md">
-                            <i class="fa-solid fa-plus text-[8px]"></i> リスト追加
-                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <!-- 似た音域を検索するワンタップマッチボタン -->
+                            <button onclick="filterSimilarRange('${song.id}', event)" class="text-[9px] text-violet-400 hover:text-violet-300 font-bold flex items-center gap-1 border border-violet-500/20 bg-violet-500/5 px-2 py-0.5 rounded-md transition" title="この曲と最高音が同じ曲を検索">
+                                <i class="fa-solid fa-magnifying-glass text-[8px]"></i> 音域マッチ🔍
+                            </button>
+                            <!-- プレイリスト追加のミニランチャー -->
+                            <button onclick="showPlaylistSelector('${song.id}', event)" class="text-[9px] text-slate-400 hover:text-violet-400 font-bold flex items-center gap-1 border border-slate-800 bg-slate-950 px-2 py-0.5 rounded-md transition">
+                                <i class="fa-solid fa-plus text-[8px]"></i> 追加
+                            </button>
+                        </div>
                     </div>
 
                     <!-- コメント/メモが書かれている場合に表示 -->
@@ -773,8 +821,42 @@
             });
         }
 
+        // --- 似た音域の曲をワンタップ検索するロジック ---
+        function filterSimilarRange(songId, event) {
+            event.stopPropagation();
+            const song = songs.find(s => s.id === songId);
+            if (!song) return;
+
+            const targetChest = song.chestVoiceMax;
+            const targetFalsetto = song.falsettoVoiceMax;
+
+            if (!targetChest && !targetFalsetto) {
+                showToast("最高音情報が設定されていません", "fa-triangle-exclamation", "text-amber-400");
+                return;
+            }
+
+            // 地声または裏声のどちらかが一致、もしくは似ている曲をフィルタリング
+            const matched = songs.filter(s => {
+                const isChestMatch = targetChest && s.chestVoiceMax && s.chestVoiceMax.toLowerCase() === targetChest.toLowerCase();
+                const isFalsettoMatch = targetFalsetto && s.falsettoVoiceMax && s.falsettoVoiceMax.toLowerCase() === targetFalsetto.toLowerCase();
+                return isChestMatch || isFalsettoMatch;
+            });
+
+            // バッジの表示
+            const badge = document.getElementById('active-match-badge');
+            badge.innerText = `最高音 ${targetChest || targetFalsetto} マッチ中`;
+            badge.classList.remove('hidden');
+
+            renderSongsList(matched);
+            changeAvatarMsg('musicMatched', `「${song.title}」と最高音（${targetChest || targetFalsetto}）が同じ曲をマッチングしました！`);
+            showToast(`最高音 ${targetChest || targetFalsetto} の曲を絞り込みました`, "fa-magnifying-glass", "text-violet-400");
+        }
+
         // --- 検索および詳細フィルター適用 ---
         function applyFilters() {
+            // マッチバッジ非表示
+            document.getElementById('active-match-badge').classList.add('hidden');
+
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             const chestFilter = document.getElementById('filter-chest').value;
             const falsettoFilter = document.getElementById('filter-falsetto').value;
@@ -790,13 +872,13 @@
                 // 2. 地声最高音フィルター
                 let matchesChest = true;
                 if (chestFilter) {
-                    matchesChest = song.chestVoiceMax && song.chestVoiceMax.toLowerCase().includes(chestFilter.toLowerCase());
+                    matchesChest = song.chestVoiceMax && song.chestVoiceMax.toLowerCase() === chestFilter.toLowerCase();
                 }
 
                 // 3. 裏声最高音フィルター
                 let matchesFalsetto = true;
                 if (falsettoFilter) {
-                    matchesFalsetto = song.falsettoVoiceMax && song.falsettoVoiceMax.toLowerCase().includes(falsettoFilter.toLowerCase());
+                    matchesFalsetto = song.falsettoVoiceMax && song.falsettoVoiceMax.toLowerCase() === falsettoFilter.toLowerCase();
                 }
 
                 // 4. 難易度
@@ -818,7 +900,9 @@
             document.getElementById('filter-falsetto').value = '';
             document.getElementById('filter-difficulty').value = '';
             document.getElementById('filter-status').value = '';
+            document.getElementById('active-match-badge').classList.add('hidden');
             applyFilters();
+            changeAvatarMsg('welcome');
             showToast("フィルターを初期化しました", "fa-circle-notch", "text-violet-400");
         }
 
@@ -852,21 +936,17 @@
             let listName = "";
 
             if (type === 'recent') {
-                // 最新15曲：更新タイムスタンプの降順
                 listToPlay = [...songs]
                     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
                     .slice(0, 15);
                 listName = "最新 15 曲";
             } else if (type === 'highly-rated') {
-                // 完成度★4以上の曲
                 listToPlay = songs.filter(s => (s.stars || 0) >= 4);
                 listName = "高評価ベスト";
             } else if (type === 'practice') {
-                // ステータスが練習中の曲
                 listToPlay = songs.filter(s => s.status === '練習中');
                 listName = "特訓中課題リスト";
             } else if (type === 'shuffle-all') {
-                // 全曲シャッフル
                 listToPlay = [...songs];
                 listName = "全曲シャッフル";
                 isShuffle = true;
@@ -898,7 +978,6 @@
                 return;
             }
 
-            // 曲実体との紐付け
             const songList = playlist.songIds
                 .map(id => songs.find(s => s.id === id))
                 .filter(Boolean);
@@ -920,7 +999,6 @@
             const song = songs.find(s => s.id === songId);
             if (!song) return;
 
-            // アコーディオン風のミニポップオーバーを作成
             const overlay = document.createElement('div');
             overlay.className = "fixed inset-0 z-50 bg-transparent";
             overlay.onclick = () => overlay.remove();
@@ -928,7 +1006,6 @@
             const menu = document.createElement('div');
             menu.className = "absolute bg-slate-900 border border-slate-800 rounded-xl p-2 w-48 shadow-2xl space-y-1 text-xs text-slate-200";
             
-            // ポップオーバー位置計算 (ターゲットボタン近辺)
             const rect = event.currentTarget.getBoundingClientRect();
             menu.style.top = `${rect.top + window.scrollY - 10}px`;
             menu.style.left = `${rect.left + window.scrollX - 160}px`;
@@ -1007,21 +1084,17 @@
 
         // --- オーディオプレイヤー中枢 ---
         function initAudioEventListeners() {
-            // 時間更新
             audioEl.addEventListener('timeupdate', () => {
                 const current = audioEl.currentTime;
                 const duration = audioEl.duration || 0;
                 
-                // プログレスバー更新
                 const percent = duration > 0 ? (current / duration) * 100 : 0;
                 document.getElementById('player-progress').style.width = `${percent}%`;
 
-                // ラベル更新
                 document.getElementById('player-time-current').innerText = formatTime(current);
                 document.getElementById('player-time-total').innerText = formatTime(duration);
             });
 
-            // 再生終了時
             audioEl.addEventListener('ended', () => {
                 if (repeatMode === 'one') {
                     audioEl.currentTime = 0;
@@ -1032,16 +1105,13 @@
             });
         }
 
-        // 時間フォーマット 00:00
         function formatTime(secs) {
             const m = Math.floor(secs / 60).toString().padStart(2, '0');
             const s = Math.floor(secs % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
 
-        // 直接曲単体を選択して再生
         function playSongDirect(songId) {
-            // 現在のフィルターリスト、または全曲リストを一時的なプレイリストとして構築
             currentPlaylist = { name: "選択中フォルダの一覧", list: [...songs] };
             currentSongIndex = currentPlaylist.list.findIndex(s => s.id === songId);
             
@@ -1050,7 +1120,6 @@
             playCurrentSong();
         }
 
-        // 音声の再生
         function playCurrentSong() {
             if (currentPlaylist.list.length === 0 || currentSongIndex < 0 || currentSongIndex >= currentPlaylist.list.length) {
                 return;
@@ -1059,17 +1128,14 @@
             const song = currentPlaylist.list[currentSongIndex];
             const hasLocalFile = mappedFiles[song.fileName];
 
-            // プレイヤーUI更新
             document.getElementById('player-song-title').innerText = song.title;
             document.getElementById('player-song-artist').innerText = song.artist || "アーティスト不明";
             document.getElementById('player-song-maxkey').innerText = `最高: ${song.falsettoVoiceMax || song.chestVoiceMax || '--'}`;
             document.getElementById('player-playlist-name').innerText = `プレイリスト: ${currentPlaylist.name} (${currentSongIndex + 1}/${currentPlaylist.list.length})`;
 
-            // ボトムプレイヤー出現
             document.getElementById('global-player').classList.remove('translate-y-full');
 
             if (hasLocalFile) {
-                // ローカルBlobURLがセットされている場合はそれを使用
                 const blobUrl = URL.createObjectURL(hasLocalFile);
                 audioEl.src = blobUrl;
                 audioEl.play()
@@ -1081,25 +1147,23 @@
                         showToast("音声の読み込みに失敗しました", "fa-triangle-exclamation", "text-rose-400");
                     });
             } else {
-                // サンプル再生（自動生成ダミー音源、または案内音源のシミュレート）
-                // 300曲あると同期していない曲も多いため、Web Audio APIでその曲の主旋律っぽい音を鳴らす面白い機能を搭載
                 playDummySynthesizer(song);
             }
         }
 
-        // iCloudのWAV同期をしていない楽曲の代わりに電子メロディを再生する簡易シンセ
         let synthInterval = null;
         function playDummySynthesizer(song) {
-            // すでにシンセ再生中なら停止
             stopDummySynthesizer();
             
+            // WAVファイルがない場合、アバターを一時的に涙うるうる「024.png」にするギミック
+            document.getElementById('avatar-img').src = '024.png';
             showToast("⚠️ iCloud同期が未完了のため、プレビュー旋律を再生します", "fa-circle-exclamation", "text-amber-500");
 
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C4~C5
             let noteIndex = 0;
 
-            audioEl.src = ""; // 標準プレイヤーをリセット
+            audioEl.src = "";
             isPlaying = true;
             updatePlayPauseState(true);
 
@@ -1112,13 +1176,12 @@
                 const gain = audioCtx.createGain();
                 
                 osc.type = 'triangle';
-                // 曲のキーに基づいて少し周波数を変えるギミック
                 const keyOffset = song.key || 0;
                 const freq = notes[(noteIndex + Math.abs(keyOffset)) % notes.length];
                 
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
                 
                 osc.connect(gain);
@@ -1128,11 +1191,11 @@
                 osc.stop(audioCtx.currentTime + 0.5);
 
                 noteIndex++;
-                if (noteIndex > 20) {
+                if (noteIndex > 15) {
                     stopDummySynthesizer();
                     playNextSong();
                 }
-            }, 500);
+            }, 600);
         }
 
         function stopDummySynthesizer() {
@@ -1142,7 +1205,6 @@
             }
         }
 
-        // トグル再生
         function togglePlayPause() {
             if (synthInterval) {
                 stopDummySynthesizer();
@@ -1170,14 +1232,15 @@
             if (playing) {
                 btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
                 avatar.classList.add('animate-slow-spin');
+                avatar.src = '031.png'; // ノリノリサングラス
             } else {
                 btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
                 avatar.classList.remove('animate-slow-spin');
+                avatar.src = '001.png'; // 通常顔
             }
-            renderSongsList(); // 再生インジケータ更新のため再描画
+            renderSongsList();
         }
 
-        // 次の曲
         function playNextSong() {
             stopDummySynthesizer();
             if (currentPlaylist.list.length === 0) return;
@@ -1196,7 +1259,6 @@
             playCurrentSong();
         }
 
-        // 前の曲
         function playPrevSong() {
             stopDummySynthesizer();
             if (currentPlaylist.list.length === 0) return;
@@ -1212,9 +1274,8 @@
             playCurrentSong();
         }
 
-        // シークバー移動
         function seekAudio(event) {
-            if (synthInterval) return; // シンセモード時はシーク不可
+            if (synthInterval) return;
             const bar = document.getElementById('seekbar-container');
             const rect = bar.getBoundingClientRect();
             const clickX = event.clientX - rect.left;
@@ -1225,7 +1286,6 @@
             }
         }
 
-        // リピートトグル
         function toggleRepeatMode() {
             const btn = document.getElementById('player-btn-repeat');
             if (repeatMode === 'off') {
@@ -1245,7 +1305,6 @@
             }
         }
 
-        // シャッフルトグル
         function toggleShuffleMode() {
             isShuffle = !isShuffle;
             updateShuffleStyle();
@@ -1254,7 +1313,6 @@
                 shuffleCurrentPlaylist();
                 showToast("シャッフル再生をONにしました", "fa-shuffle", "text-emerald-400");
             } else {
-                // シャッフル解除
                 if (originalShuffleList.length > 0) {
                     const currentSong = currentPlaylist.list[currentSongIndex];
                     currentPlaylist.list = [...originalShuffleList];
@@ -1277,13 +1335,11 @@
             originalShuffleList = [...currentPlaylist.list];
             const currentSong = currentPlaylist.list[currentSongIndex];
             
-            // Fisher-Yates アルゴリズムでシャッフル
             for (let i = currentPlaylist.list.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [currentPlaylist.list[i], currentPlaylist.list[j]] = [currentPlaylist.list[j], currentPlaylist.list[i]];
             }
 
-            // 現在再生中の曲を先頭に維持
             if (currentSong) {
                 const newIdx = currentPlaylist.list.findIndex(s => s.id === currentSong.id);
                 if (newIdx > -1) {
@@ -1307,31 +1363,33 @@
                 const file = files[i];
                 mappedFiles[file.name] = file;
 
-                // データベースとの照合
+                // データベースとの照合 (fileName一致、または曲名/アーティストの部分一致)
                 const matchedSong = songs.find(s => s.fileName === file.name || file.name.includes(s.title));
                 if (matchedSong) {
-                    // もしファイル名だけで自動照合できた場合、曲側のファイル名を固定
                     matchedSong.fileName = file.name;
                     mappedCount++;
                 } else {
-                    // 新規追加候補としてマーク
-                    // 拡張子を取り除いた曲名
+                    // 新規追加候補としてパース
+                    // 拡張子を取り除いたファイル名
                     const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                    // ファイル名から地声最高音などの抽出を試みるギミック (例: 「マリーゴールド_hiA」)
+                    
+                    // WAVはすべて「アーティスト名_曲名_...」の形式になっているため、それをパースして抽出
+                    let estimatedArtist = "自主歌唱録音";
                     let estimatedTitle = rawName;
-                    let estimatedChest = "";
                     
                     if (rawName.includes('_')) {
                         const parts = rawName.split('_');
-                        estimatedTitle = parts[0];
-                        estimatedChest = parts[1]; // hiAなど
+                        estimatedArtist = parts[0].trim();
+                        estimatedTitle = parts[1].trim();
                     }
 
                     detectedNewSongs.push({
                         fileName: file.name,
                         title: estimatedTitle,
-                        chest: estimatedChest,
-                        artist: "自主歌唱録音"
+                        artist: estimatedArtist,
+                        chest: "",
+                        falsetto: "",
+                        notes: ""
                     });
                 }
             }
@@ -1339,7 +1397,6 @@
             saveSongsToStorage();
             renderSongsList();
 
-            // バッジの更新
             document.getElementById('sync-dot').className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
             document.getElementById('sync-text').innerText = `${Object.keys(mappedFiles).length}曲 同期完了`;
 
@@ -1361,7 +1418,7 @@
                         <div class="truncate pr-2">
                             <span class="text-violet-400 font-bold">${index + 1}.</span>
                             <span class="text-slate-200 font-medium">${ns.title}</span>
-                            ${ns.chest ? `<span class="bg-violet-500/10 text-violet-400 text-[8px] px-1.5 py-0.2 rounded ml-1.5">${ns.chest}</span>` : ''}
+                            <span class="text-slate-400 text-[10px] ml-1.5">by ${ns.artist}</span>
                         </div>
                         <span class="text-[9px] text-slate-500 truncate max-w-[120px] italic font-bold">${ns.fileName}</span>
                     `;
@@ -1372,44 +1429,136 @@
             }
         }
 
-        // 新規検出曲の一括インポート
-        function importDetectedSongs() {
+        // --- Gemini 2.5 Flash による最高音・アドバイスの自動調査 (API exponential backoff 搭載) ---
+        async function fetchSongDataFromGeminiWithBackoff(artist, title, retries = 5, delay = 1000) {
+            const systemPrompt = "あなたはJ-POPの楽曲音域（最高音）データベースです。ユーザーから与えられたアーティスト名と曲名について、インターネット検索を用いて、正確な「地声最高音（例: mid2G, hiA, hiB, hiC, hiD）」および「裏声最高音（例: hiB, hiC, hiD, hiE, hiF, hiG、無しの場合はなし）」を調べてJSON形式で返してください。また、その曲の歌い方の簡単なワンポイントアドバイスをnotesに含めてください。";
+            const userQuery = `アーティスト: "${artist}", 曲名: "${title}" の最高音域と歌い方アドバイスを検索して教えてください。`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }], // Google検索 grounding を有効にする
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            chest: { type: "STRING", description: "地声最高音。例: hiA, mid2G, hiC" },
+                            falsetto: { type: "STRING", description: "裏声最高音。例: hiC, hiE, なし" },
+                            notes: { type: "STRING", description: "歌い方アドバイス、ブレスの位置など（50文字以内）" }
+                        },
+                        required: ["chest", "falsetto", "notes"]
+                    }
+                }
+            };
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP status ${response.status}`);
+
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        return JSON.parse(text);
+                    }
+                } catch (err) {
+                    if (i === retries - 1) {
+                        console.error("Gemini APIでの音域調査がすべて失敗しました:", err);
+                        return null; // リトライ上限超過でフォールバック
+                    }
+                    // 指数バックオフ
+                    await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                }
+            }
+            return null;
+        }
+
+        // 新規検出曲の一括インポート (AI検索対応版)
+        async function importDetectedSongs() {
             if (detectedNewSongs.length === 0) return;
 
-            detectedNewSongs.forEach(ns => {
+            const isAiEnabled = document.getElementById('ai-lookup-toggle').checked;
+            const overlay = document.getElementById('import-progress-overlay');
+            const progressBar = document.getElementById('import-progress-bar');
+            const progressText = document.getElementById('import-progress-text');
+
+            if (isAiEnabled) {
+                overlay.classList.remove('hidden');
+            }
+
+            const total = detectedNewSongs.length;
+            
+            for (let i = 0; i < total; i++) {
+                const ns = detectedNewSongs[i];
+                
+                if (isAiEnabled) {
+                    progressText.innerText = `${i + 1} / ${total} 曲目: 「${ns.title}」をAI調査中...`;
+                    progressBar.style.width = `${((i + 1) / total) * 100}%`;
+                }
+
+                let chest = "hiA";
+                let falsetto = "hiC";
+                let notes = "録音完了しました！";
+
+                // AI調査を実行
+                if (isAiEnabled) {
+                    const aiData = await fetchSongDataFromGeminiWithBackoff(ns.artist, ns.title);
+                    if (aiData) {
+                        chest = aiData.chest || "hiA";
+                        falsetto = aiData.falsetto || "hiC";
+                        notes = aiData.notes || "AIによる自動調査アドバイス";
+                    }
+                }
+
                 const newSong = {
                     id: 'song-' + Date.now() + Math.random().toString(36).substr(2, 5),
                     title: ns.title,
                     artist: ns.artist,
-                    chestVoiceMax: ns.chest || "hiA",
-                    falsettoVoiceMax: "hiC",
+                    chestVoiceMax: chest,
+                    falsettoVoiceMax: falsetto,
                     difficulty: 3,
                     stars: 3,
                     key: 0,
                     status: "録音完了",
                     fileName: ns.fileName,
-                    notes: "iCloudフォルダから自動インポートされました",
+                    notes: notes,
                     updatedAt: Date.now()
                 };
+
                 songs.push(newSong);
-            });
+                // 各曲追加ごとに少しウェイト
+                if (isAiEnabled) {
+                    await new Promise(r => setTimeout(r, 400));
+                }
+            }
 
             detectedNewSongs = [];
             document.getElementById('new-songs-detected-box').classList.add('hidden');
+            overlay.classList.add('hidden');
             
             saveSongsToStorage();
             renderSongsList();
+
+            // 笑顔「006.png」で同期大成功をアピール
+            document.getElementById('avatar-img').src = '006.png';
+            changeAvatarMsg('syncSuccess', `全 ${total} 曲の一括取り込みと最高音のAI調査が完了しました！`);
             showToast("すべての新曲を一括インポートしました！", "fa-cloud-arrow-down", "text-emerald-400");
         }
 
 
         // --- 個別曲の追加・編集フォームロジック ---
         function setupStarPickers() {
-            // 難易度ピッカー
             const diffContainer = document.getElementById('difficulty-stars-picker');
             createInteractiveStars(diffContainer, 'form-difficulty');
 
-            // 自己評価星ピッカー
             const starsContainer = document.getElementById('stars-stars-picker');
             createInteractiveStars(starsContainer, 'form-stars');
         }
@@ -1424,7 +1573,6 @@
                 star.className = `fa-solid fa-star cursor-pointer transition-colors ${i <= currentVal ? 'text-amber-500' : 'text-slate-700'}`;
                 star.onclick = () => {
                     hiddenInput.value = i;
-                    // 再着色
                     Array.from(container.children).forEach((child, index) => {
                         if (index < i) {
                             child.className = "fa-solid fa-star cursor-pointer text-amber-500 transition-colors";
@@ -1443,7 +1591,6 @@
             form.reset();
 
             if (songId) {
-                // 編集モード
                 document.getElementById('modal-title').innerText = "曲情報を編集";
                 const song = songs.find(s => s.id === songId);
                 if (!song) return;
@@ -1460,14 +1607,12 @@
                 document.getElementById('form-difficulty').value = song.difficulty || 3;
                 document.getElementById('form-stars').value = song.stars || 3;
             } else {
-                // 新規モード
                 document.getElementById('modal-title').innerText = "歌唱曲を新規追加";
                 document.getElementById('edit-song-id').value = '';
                 document.getElementById('form-difficulty').value = 3;
                 document.getElementById('form-stars').value = 3;
             }
 
-            // 星UIの現在の値に合わせて描画更新
             createInteractiveStars(document.getElementById('difficulty-stars-picker'), 'form-difficulty');
             createInteractiveStars(document.getElementById('stars-stars-picker'), 'form-stars');
 
@@ -1494,7 +1639,6 @@
             const stars = parseInt(document.getElementById('form-stars').value) || 3;
 
             if (songId) {
-                // 更新
                 const idx = songs.findIndex(s => s.id === songId);
                 if (idx > -1) {
                     songs[idx] = {
@@ -1506,7 +1650,6 @@
                     showToast("曲情報を変更しました", "fa-circle-check", "text-emerald-400");
                 }
             } else {
-                // 新規追加
                 const newSong = {
                     id: 'song-' + Date.now(),
                     title, artist, chestVoiceMax: chest, falsettoVoiceMax: falsetto,
@@ -1580,7 +1723,7 @@
                     stars: 4,
                     key: 0,
                     status: '録音完了',
-                    fileName: '怪獣の花唄.wav',
+                    fileName: 'Vaundy_怪獣の花唄.wav',
                     notes: 'サビのhiAが連続する部分はブレスを十分に。ラスト転調は気合。',
                     updatedAt: Date.now() - 3600000
                 },
@@ -1594,7 +1737,7 @@
                     stars: 3,
                     key: -2,
                     status: '練習中',
-                    fileName: 'アイドル_YOASOBI.wav',
+                    fileName: 'YOASOBI_アイドル.wav',
                     notes: 'テンポが早くてブレスの位置が難しい。キーは-2で安定。',
                     updatedAt: Date.now() - 7200000
                 },
@@ -1608,7 +1751,7 @@
                     stars: 5,
                     key: 4,
                     status: '録音完了',
-                    fileName: 'マリーゴールド.wav',
+                    fileName: 'あいみょん_マリーゴールド_mid2G.wav',
                     notes: '最高音も低めで歌いやすい。自分の声質にとても合っている！',
                     updatedAt: Date.now()
                 }
