@@ -304,10 +304,12 @@
                     <div class="flex flex-col gap-2.5">
                         <!-- スマホ(iOS / Android)推奨の複数ファイル選択ピッカー (webkitdirectoryなしで安全にiCloudアクセス可能) -->
                         <div class="space-y-1.5">
-                            <span class="text-[10px] font-extrabold text-violet-400 uppercase tracking-wider block"><i class="fa-solid fa-mobile-screen-button"></i> スマートフォン (iCloud) 推奨同期</span>
+                            <span class="text-[10px] font-extrabold text-violet-400 uppercase tracking-wider block flex items-center gap-1">
+                                <i class="fa-solid fa-mobile-screen-button"></i> iPhone・スマートフォン推奨同期
+                            </span>
                             <label class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 text-white text-xs font-bold py-3.5 rounded-xl text-center cursor-pointer shadow-md transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-file-audio text-sm"></i> iCloudから録音ファイルを複数選択して同期
-                                <input type="file" id="iCloud-picker-files" multiple accept="audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
+                                <input type="file" id="iCloud-picker-files" multiple accept=".wav, .mp3, .m4a, audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
                             </label>
                         </div>
 
@@ -316,10 +318,17 @@
                             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"><i class="fa-solid fa-laptop"></i> PC向け同期 (フォルダ選択)</span>
                             <label class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 text-xs font-bold py-2.5 rounded-xl text-center cursor-pointer transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-folder-open text-sm"></i> フォルダごと選択して同期
-                                <input type="file" id="iCloud-picker" multiple webkitdirectory directory accept="audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
+                                <input type="file" id="iCloud-picker" multiple webkitdirectory directory accept=".wav, .mp3, .m4a, audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
                             </label>
                         </div>
                     </div>
+                </div>
+
+                <!-- 同期に関するiPhoneトラブルシューティング -->
+                <div class="border-t border-slate-800/60 pt-3 flex justify-center">
+                    <button onclick="openTroubleShootModal()" class="text-xs text-violet-400 hover:text-violet-300 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question"></i> iPhoneで同期できない場合の対処法
+                    </button>
                 </div>
             </div>
 
@@ -565,6 +574,59 @@
                 <div class="pt-2 flex gap-3">
                     <button onclick="closePlaylistModal()" class="flex-1 bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold py-2 rounded-lg">キャンセル</button>
                     <button onclick="createPlaylist()" class="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold py-2 rounded-lg shadow-md">作成する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モダール 3: iPhone同期お助け・トラブルシューティングモーダル -->
+    <div id="troubleshoot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 hidden overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 w-full max-w-md space-y-4 shadow-2xl relative my-auto">
+            <div class="absolute top-4 right-4">
+                <button onclick="closeTroubleShootModal()" class="w-8 h-8 rounded-full bg-slate-950 border border-slate-800 text-slate-400 flex items-center justify-center hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex items-center space-x-3 pb-2 border-b border-slate-800">
+                <img src="024.png" class="w-10 h-10 object-contain">
+                <div>
+                    <h2 class="text-xs font-black text-slate-100">iPhoneでのWAV同期お助けガイド</h2>
+                    <p class="text-[9px] text-slate-400">iOS特有の仕様・バグを回避して同期を大成功させる手順</p>
+                </div>
+            </div>
+
+            <div class="space-y-3.5 text-[11px] leading-relaxed text-slate-300">
+                <div class="space-y-1 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                    <span class="text-violet-400 font-bold uppercase tracking-wider text-[10px] block">⚠️ iOSの重要制限について</span>
+                    <p class="text-[10px] text-slate-400">
+                        iCloud上のWAVファイルに「雲マーク ☁️」がついている場合（iPhone内に実体が一時ダウンロードされていない場合）、iOSのセキュリティ仕様によりブラウザ（特に非Safari）がファイルを選択しても空データとして弾かれてしまいます。
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策①：Safariで開いて試す（超推奨）</span>
+                    <p class="text-[10px] text-slate-400 pl-4">
+                        iPhoneのChromeアプリではなく、標準の<strong>「Safari」</strong>でUtaLog（このページ）を開いて同期をお試しください。SafariはApple純正のため、ファイル選択時に自動でバックグラウンドダウンロードが走り、同期成功率が極めて高いです。
+                    </p>
+                </div>
+
+                <div class="space-y-2 border-t border-slate-800/60 pt-2">
+                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策②：「このiPhone内」に移して同期する</span>
+                    <p class="text-[10px] text-slate-400 pl-4">
+                        iPhone標準の「ファイル」アプリを開き、iCloud上の歌唱WAVフォルダを丸ごと<strong>「このiPhone内」</strong>というフォルダにコピー＆ペーストしてから、UtaLogの同期画面でそこを選択してください。クラウド通信を介さないため100%確実に一瞬で同期できます！
+                    </p>
+                </div>
+
+                <div class="space-y-2 border-t border-slate-800/60 pt-2">
+                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策③：iCloudから先んじて全ダウンロード</span>
+                    <p class="text-[10px] text-slate-400 pl-4">
+                        「ファイル」アプリでWAVファイルが入っているフォルダを開き、雲マークがついている場合はそのフォルダを長押しして<strong>「今すぐダウンロード」</strong>を実行してから選択してください。
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="closeTroubleShootModal()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">
+                        理解しました！
+                    </button>
                 </div>
             </div>
         </div>
@@ -927,7 +989,7 @@
 
             renderSongsList(matched);
             changeAvatarMsg('musicMatched', `「${song.title}」と最高音（${targetChest || targetFalsetto}）が同じ曲をマッチングしました！`);
-            showToast(`最高音 ${targetChest || targetFalsetto} の曲を絞り込みました`, "fa-magnifying-glass", "text-violet-400", "031.png");
+            showToast("似た最高音の曲をマッチングしました", "fa-magnifying-glass", "text-violet-400", "031.png");
         }
 
         // --- 検索および詳細フィルター適用 ---
@@ -1229,6 +1291,14 @@
             }
 
             if (hasLocalFile) {
+                // iOSにおける「雲マーク」ファイルの検知：Fileのサイズが極端に小さい(0バイトなど)場合は警告表示
+                if (hasLocalFile.size === 0) {
+                    showToast("iCloud上で未ダウンロード状態のファイルです", "fa-triangle-exclamation", "text-amber-500", "024.png");
+                    openTroubleShootModal();
+                    playDummySynthesizer(song);
+                    return;
+                }
+
                 try {
                     currentBlobUrl = URL.createObjectURL(hasLocalFile);
                     audioEl.src = currentBlobUrl;
@@ -1373,6 +1443,14 @@
             playCurrentSong();
         }
 
+        // トラブルシューティングモーダル
+        function openTroubleShootModal() {
+            document.getElementById('troubleshoot-modal').classList.remove('hidden');
+        }
+        function closeTroubleShootModal() {
+            document.getElementById('troubleshoot-modal').classList.add('hidden');
+        }
+
         function seekAudio(event) {
             if (synthInterval) return;
             const bar = document.getElementById('seekbar-container');
@@ -1455,6 +1533,7 @@
             if (files.length === 0) return;
 
             let mappedCount = 0;
+            let emptyFilesCount = 0;
             detectedNewSongs = [];
 
             // すべてのファイルをメモリにマップ
@@ -1465,6 +1544,11 @@
                 const sizeMB = file.size / (1024 * 1024);
                 if (sizeMB > 150) {
                     console.warn(`大容量ファイルを検出しました: ${file.name} (${sizeMB.toFixed(1)}MB)`);
+                }
+
+                // iCloud特有のプレースホルダー(雲マーク・実体未ダウンロード)のチェック
+                if (file.size === 0) {
+                    emptyFilesCount++;
                 }
 
                 mappedFiles[file.name] = file;
@@ -1514,8 +1598,15 @@
             document.getElementById('sync-dot').className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
             document.getElementById('sync-text').innerText = `${Object.keys(mappedFiles).length}曲 同期完了`;
 
-            changeAvatarMsg('syncSuccess');
-            showToast(`${mappedCount}曲の既存WAVと接続に成功！`, "fa-wand-magic-sparkles", "text-violet-400", "006.png");
+            if (emptyFilesCount > 0) {
+                // iCloud未ダウンロードファイルが交ざっていた場合
+                document.getElementById('avatar-img').src = '024.png'; // うるうる涙
+                changeAvatarMsg('syncSuccess', `同期を実行しましたが、${emptyFilesCount}件のファイルがiCloudからまだダウンロードされていないプレースホルダー状態（サイズ0KB）です。同期トラブルシューティングをご覧ください。`);
+                openTroubleShootModal();
+            } else {
+                changeAvatarMsg('syncSuccess');
+                showToast(`${mappedCount}曲の既存WAVと接続に成功！`, "fa-wand-magic-sparkles", "text-violet-400", "006.png");
+            }
 
             // 新規検出ボックスの構築
             const newSongsBox = document.getElementById('new-songs-detected-box');
@@ -1545,7 +1636,7 @@
 
         // --- Gemini 2.5 Flash による最高音・ジャンル・歌い方アドバイスの自動調査 ---
         async function fetchSongDataFromGeminiWithBackoff(artist, title, retries = 5, delay = 1000) {
-            const systemPrompt = "あなたはJ-POPの楽曲音域（最高音）データベースです。ユーザーから与えられたアーティスト名と曲名について、インターネット検索を用いて、正確な「地声最高音（例: mid2G, hiA, hiB, hiC, hiD）」および「裏声最高音（例: hiB, hiC, hiD, hiE, hiF, hiG、無しの場合はなし）」を調べてJSON形式で返してください。また、ジャンル（アニソン、ボカロ、ロック、バラード、J-POP、シティポップなどから1つ選択）をcategoryに、その曲の歌い方の簡単なワンポイントアドバイスをnotesに含めてください。";
+            const systemPrompt = "あなたはJ-POPの楽曲音域（最高音）データベースです。ユーザーから与えられたアーティスト名 and 曲名について、インターネット検索を用いて、正確な「地声最高音（例: mid2G, hiA, hiB, hiC, hiD）」および「裏声最高音（例: hiB, hiC, hiD, hiE, hiF, hiG、無しの場合はなし）」を調べてJSON形式で返してください。また、ジャンル（アニソン、ボカロ、ロック、バラード、J-POP、シティポップなどから1つ選択）をcategoryに、その曲の歌い方の簡単なワンポイントアドバイスをnotesに含めてください。";
             const userQuery = `アーティスト: "${artist}", 曲名: "${title}" の最高音域、ジャンル、歌い方アドバイスを検索して教えてください。`;
 
             const payload = {
