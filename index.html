@@ -71,7 +71,7 @@
             </div>
             <div>
                 <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">UTALOG MOBILE</h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v2.6 Cloud & Async AI Edition</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v2.7 Waveform & DB Cache Edition</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -84,9 +84,9 @@
     </header>
 
     <!-- メインコンテンツエリア -->
-    <main class="flex-1 pb-36 overflow-y-auto px-4 pt-4 max-w-lg mx-auto w-full space-y-4 no-scrollbar">
+    <main class="flex-1 pb-44 overflow-y-auto px-4 pt-4 max-w-lg mx-auto w-full space-y-4 no-scrollbar">
         
-        <!-- AIバックグラウンド調査進捗インジケータ（画面フリーズ回避用・新設） -->
+        <!-- AIバックグラウンド調査進捗インジケータ -->
         <div id="ai-bg-status" class="bg-violet-950/30 border border-violet-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg hidden">
             <div class="flex items-center gap-3">
                 <div class="relative w-10 h-10 flex-shrink-0 flex items-center justify-center bg-violet-500/10 border border-violet-500/20 rounded-full">
@@ -113,7 +113,8 @@
                 <p class="text-xs font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
                     <i class="fa-solid fa-sparkles text-[10px]"></i> UtaLog Assistant
                 </p>
-                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">今日もいい歌声を残しましょう！WAVファイルをフォルダ選択なしで安全・確実に同期するストリーミング同期がおすすめですよ！</p>
+                <!-- スマホで見やすい13px(text-[13px])・ゆったりめの行間 -->
+                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">WAVファイルの再生権を100%キープする「本体保存 💾」機能を搭載しました！暗闇でもシークバーを楽々ドラッグして再生位置を調整できますよ！</p>
             </div>
         </div>
 
@@ -289,15 +290,15 @@
             <!-- フォルダURLストリーミング設定 (直リンク完全マニュアル付き) -->
             <div class="bg-slate-900 border border-violet-500/20 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 opacity-10 translate-x-3 translate-y-3">
-                    <img src="ギター弾く.png" class="w-24 h-24 object-contain">
+                    <img src="006.png" class="w-24 h-24 object-contain">
                 </div>
                 <div class="flex items-center space-x-2 text-violet-400">
                     <i class="fa-solid fa-cloud-arrow-up text-base"></i>
                     <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">超確実：フォルダURLストリーミング設定</h3>
                 </div>
                 
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    iPhone内のWAVフォルダへのSafariやChromeからのアクセス障害を完全に回避します。<br>
+                <p class="text-xs text-slate-400 leading-relaxed pr-12">
+                    WAVフォルダへのSafariやChromeからのアクセス障害を完全に回避します。<br>
                     <strong>Google ドライブ、Dropbox、OneDrive</strong> 等にお持ちのWAVをアップロードし、その「共有フォルダのURL（ベースURL）」を以下に指定してください。
                 </p>
 
@@ -387,7 +388,7 @@
                 </label>
             </div>
 
-            <!-- 新規追加候補インポーター (コピペ直後。AI調査が裏で行われるため、全画面フリーズはもうありません) -->
+            <!-- 新規追加候補インポーター -->
             <div id="new-songs-detected-box" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3.5 shadow-xl relative overflow-hidden">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2 text-amber-400">
@@ -452,15 +453,22 @@
         </div>
     </main>
 
-    <!-- モバイル固定フローティング・ボトムプレイヤー -->
-    <div id="global-player" class="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/98 backdrop-blur-xl border-t border-slate-900 px-4 pt-4 pb-8 max-w-lg mx-auto w-full shadow-2xl transition-all duration-300 translate-y-full">
-        <!-- シークバー -->
-        <div class="flex items-center space-x-2.5 mb-2.5">
+    <!-- モバイル固定フローティング・ボトムプレイヤー (シークバー＆波形ビジュアライザを完全統合) -->
+    <div id="global-player" class="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/98 backdrop-blur-xl border-t border-slate-900 px-4 pt-3.5 pb-8 max-w-lg mx-auto w-full shadow-2xl transition-all duration-300 translate-y-full overflow-hidden">
+        
+        <!-- 背景に流れる美しいCanvasオーディオ波形 (CORS配慮の疑似シミュレーター付き) -->
+        <canvas id="waveform-canvas" class="absolute inset-0 w-full h-full opacity-30 pointer-events-none z-0"></canvas>
+
+        <!-- シークバー (左右ドラッグ＆タッチに完全対応) -->
+        <div class="flex items-center space-x-2.5 mb-2.5 relative z-10">
             <span id="player-time-current" class="text-xs font-extrabold text-slate-400 w-10 text-right">00:00</span>
-            <div class="flex-1 relative group py-1.5" onclick="seekAudio(event)" id="seekbar-container">
-                <div class="h-1.5 bg-slate-800 rounded-full w-full">
-                    <div id="player-progress" class="h-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full w-0 relative">
-                        <div class="absolute -right-1.5 -top-1 w-4.5 h-4.5 rounded-full bg-white shadow-md border-2 border-violet-500 scale-100 transition-transform"></div>
+            <div class="flex-1 relative group py-2.5 cursor-pointer select-none" id="seekbar-container">
+                <!-- タッチ操作領域拡大のための透明な見えないオーバーレイ -->
+                <div class="absolute inset-y-0 -inset-x-2 z-20"></div>
+                <div class="h-2 bg-slate-800 rounded-full w-full relative z-10">
+                    <div id="player-progress" class="h-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full w-0 relative">
+                        <!-- ドラッグ対応のシークツマミ -->
+                        <div id="seekbar-handle" class="absolute -right-2 -top-1 w-4 h-4 rounded-full bg-white shadow-lg border-2 border-violet-500 scale-100 transition-transform active:scale-125 z-30"></div>
                     </div>
                 </div>
             </div>
@@ -468,7 +476,7 @@
         </div>
 
         <!-- プレイヤー本体コントロール -->
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center justify-between gap-3 relative z-10">
             <!-- 楽曲ジャケット & メタデータ -->
             <div class="flex items-center space-x-3.5 w-1/2">
                 <div class="relative w-14 h-14 flex-shrink-0">
@@ -504,7 +512,7 @@
         </div>
         
         <!-- 現在のプレイリスト情報表示 -->
-        <div id="player-playlist-indicator" class="text-[10px] text-center text-slate-500 font-bold mt-3.5 uppercase tracking-wider border-t border-slate-900/80 pt-2 flex items-center justify-center gap-1.5">
+        <div id="player-playlist-indicator" class="text-[10px] text-center text-slate-500 font-bold mt-3.5 uppercase tracking-wider border-t border-slate-900/80 pt-2 flex items-center justify-center gap-1.5 relative z-10">
             <i class="fa-solid fa-compact-disc animate-spin text-violet-400"></i> <span id="player-playlist-name">プレイリスト: すべて</span>
         </div>
     </div>
@@ -620,60 +628,44 @@
         </div>
     </div>
 
-    <!-- モダール 3: iPhone同期お助け・トラブルシューティングモーダル -->
-    <div id="troubleshoot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 hidden overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 w-full max-w-md space-y-4 shadow-2xl relative my-auto">
+    <!-- モダール 4: スマホ本体データベース(IndexedDB)一括マウントモーダル (新設) -->
+    <div id="db-cache-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 hidden overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative my-auto">
             <div class="absolute top-4 right-4">
-                <button onclick="closeTroubleShootModal()" class="w-9 h-9 rounded-full bg-slate-950 border border-slate-800 text-slate-400 flex items-center justify-center hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeDbCacheModal()" class="w-8 h-8 rounded-full bg-slate-950 border border-slate-800 text-slate-400 flex items-center justify-center hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-800">
-                <img src="024.png" class="w-10 h-10 object-contain">
+                <img src="006.png" class="w-10 h-10 object-contain">
                 <div>
-                    <h2 class="text-xs font-black text-slate-100">iPhoneでのWAV同期お助けガイド</h2>
-                    <p class="text-[9px] text-slate-400">iOS特有の仕様・バグを回避して同期を大成功させる手順</p>
+                    <h2 class="text-xs font-black text-slate-100">スマホ本体にWAVをキャッシュ保存 💾</h2>
+                    <p class="text-[9px] text-slate-400">リロードしてもWAV再生権が消えなくなる魔法の保存機能</p>
                 </div>
             </div>
 
-            <div class="space-y-3.5 text-[11px] leading-relaxed text-slate-300">
-                <div class="space-y-1 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-                    <span class="text-violet-400 font-bold uppercase tracking-wider text-[10px] block">⚠️ iOSの重要制限について</span>
-                    <p class="text-[10px] text-slate-400">
-                        iCloud上のWAVファイルに「雲マーク ☁️」がついている場合（iPhone内に実体が一時ダウンロードされていない場合）、iOSのセキュリティ仕様によりブラウザ（特に非Safari）がファイルを選択しても空データとして弾かれてしまいます。
-                    </p>
+            <div class="space-y-3.5 text-xs text-slate-300">
+                <p class="text-[11px] leading-relaxed">
+                    この曲のWAVファイルをブラウザの内部高速データベース（IndexedDB）に格納します。これにより、<strong>次回以降アプリをリロードしたりオフラインになっても、ファイルを選び直すことなく100%確実に再生できます！</strong>
+                </p>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-slate-300">
+                    <p class="font-bold text-violet-400">対象曲情報</p>
+                    <p class="mt-1" id="cache-target-title">曲名</p>
+                    <p class="text-[10px] text-slate-500" id="cache-target-filename">ファイル名.wav</p>
                 </div>
 
-                <div class="space-y-2">
-                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策①：Safariで開いて試す（超推奨）</span>
-                    <p class="text-[10px] text-slate-400 pl-4">
-                        iPhoneのChromeアプリではなく、標準の<strong>「Safari」</strong>でUtaLog（このページ）を開いて同期をお試しください。SafariはApple純正のため、ファイル選択時に自動でバックグラウンドダウンロードが走り、同期成功率が極めて高いです。
-                    </p>
-                </div>
-
-                <div class="space-y-2 border-t border-slate-800/60 pt-2">
-                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策②：「このiPhone内」に移して同期する</span>
-                    <p class="text-[10px] text-slate-400 pl-4">
-                        iPhone標準の「ファイル」アプリを開き、iCloud上の歌唱WAVフォルダを丸ごと<strong>「このiPhone内」</strong>というフォルダにコピー＆ペーストしてから、UtaLogの同期画面でそこを選択してください。クラウド通信を介さないため100%確実に一瞬で同期できます！
-                    </p>
-                </div>
-
-                <div class="space-y-2 border-t border-slate-800/60 pt-2">
-                    <span class="text-fuchsia-400 font-bold block"><i class="fa-solid fa-circle-check"></i> 解決策③：iCloudから先んじて全ダウンロード</span>
-                    <p class="text-[10px] text-slate-400 pl-4">
-                        「ファイル」アプリでWAVファイルが入っているフォルダを開き、雲マークがついている場合はそのフォルダを長押しして<strong>「今すぐダウンロード」</strong>を実行してから選択してください。
-                    </p>
-                </div>
-
-                <div class="pt-2">
-                    <button onclick="closeTroubleShootModal()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold py-2 rounded-xl text-center shadow-lg">
-                        理解しました！
-                    </button>
+                <div class="space-y-1.5">
+                    <label class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold py-3 rounded-xl text-center cursor-pointer shadow-md transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-arrow-up"></i> この曲のWAVを本体に保存する
+                        <input type="file" id="db-cache-file-input" accept=".wav, .mp3, .m4a, audio/*" onchange="storeWavInIndexedDb(event)" class="hidden">
+                    </label>
+                    <p class="text-[10px] text-slate-500 text-center">※最大15曲程度、お気に入りや練習中の曲を登録するのがオススメです。</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 簡易トースト通知 -->
+    <!-- 簡易トースト通知 (アバター吹き出し連携) -->
     <div id="toast-message" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none scale-90 max-w-[90%] w-auto font-sans">
         <img id="toast-avatar" src="001.png" class="w-7 h-7 rounded-full object-cover border border-slate-700 bg-slate-950 flex-shrink-0">
         <div class="flex items-center gap-1.5">
@@ -683,15 +675,15 @@
     </div>
 
     <!-- Web Audio API / ダミー曲生成用シンセサイザー用 -->
-    <audio id="main-audio" class="hidden"></audio>
+    <audio id="main-audio" class="hidden" crossorigin="anonymous"></audio>
 
     <!-- JavaScript ロジック -->
     <script>
         // --- 状態管理オブジェクト ---
         let songs = [];
         let playlists = [];
-        let mappedFiles = {}; 
-        let cloudBaseUrl = ""; 
+        let mappedFiles = {}; // ファイル名 -> Fileオブジェクト (直接マッピング用)
+        let cloudBaseUrl = ""; // クラウド共有フォルダの共通ベースURL
         let currentPlaylist = { name: "すべての楽曲", list: [] };
         let currentSongIndex = -1;
         let isPlaying = false;
@@ -701,11 +693,29 @@
         let detectedNewSongs = []; 
         let currentBlobUrl = null; 
 
-        // 非同期バックグラウンドAIキュー管理（新設）
+        // 非同期バックグラウンドAIキュー管理
         let aiTaskQueue = [];
         let isProcessingAiQueue = false;
         let aiQueueTotal = 0;
         let aiQueueCompleted = 0;
+
+        // シークバーのドラッグ制御フラグ
+        let isDraggingSeek = false;
+
+        // Web Audio API と波形ビジュアライザ関連
+        let audioCtx = null;
+        let analyserNode = null;
+        let audioSourceNode = null;
+        let isAudioContextInitialized = false;
+        let visualizerAnimationId = null;
+        let mockWaveAngle = 0; // CORS制限回避時の疑似波形用のパラメータ
+
+        // IndexedDBキャッシュ管理
+        const DB_NAME = "UtaLogWavCacheDB";
+        const STORE_NAME = "wav_files";
+        const DB_VERSION = 1;
+        let dbInstance = null;
+        let cacheTargetSongId = null; // キャッシュ保存用の一時ターゲット
 
         // Gemini API 用設定
         const apiKey = ""; 
@@ -739,18 +749,79 @@
             if (savedCloudUrl) {
                 cloudBaseUrl = savedCloudUrl;
                 document.getElementById('cloud-base-url-input').value = cloudBaseUrl;
-                updateSyncDotStatus();
             }
+
+            // IndexedDB 接続開始
+            initIndexedDb();
 
             updateCategoryFilterOptions();
             renderSongsList();
             renderPlaylists();
             updateDashboardCounters();
 
-            // プレイヤー初期化
+            // プレイヤー初期化 & ドラッグイベントリスナーの登録
             initAudioEventListeners();
             setupStarPickers();
+            setupSeekDragEvents();
+            setupCanvasSize();
         });
+
+        // --- IndexedDB コントローラー ---
+        function initIndexedDb() {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = (e) => console.error("IndexedDBの初期化エラー:", e);
+            request.onsuccess = (e) => {
+                dbInstance = e.target.result;
+                updateSyncDotStatus(); // DB読込完了後に同期バッジを再描画
+                renderSongsList();
+            };
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: "songId" });
+                }
+            };
+        }
+
+        // --- アシスタントアバターのコメント集 ---
+        const avatarMessages = {
+            welcome: "おかえりなさい！今日はどの曲を練習しますか？ジャンルや最高音に合わせて賢く検索できますよ！",
+            syncSuccess: "同期完了！クラウドの音源や本体保存されたお気に入りWAVは、いつでもすぐに試聴できますよ！",
+            playlistMode: "プレイリストモード突入！「最新15曲」は追加が新しい順に自動でノンストップ再生します！",
+            recordingDone: "録音完了のステータスがついた曲は自信作ですね！どんどん蓄積していきましょう！",
+            syncRequest: "WAVファイルを安全・確実にマッピングするために「iCloud・クラウド同期」タブを覗いてみてくださいね！",
+            emptyList: "まだ曲が登録されていません。まずは下の「デモ曲を生成」するか、自分で右上の「新規追加」を押してみましょう！",
+            noResult: "うーん、該当する曲が見つかりませんでした。条件を変えて検索してみましょう！",
+            musicMatched: "おっ、その曲と音域が似ていて歌いやすい他の曲をマッチングして絞り込みましたよ！",
+            cachedDone: "スマホ本体（データベース）へのWAV保存が大成功しました！これでいつでも確実に聴けますよ！"
+        };
+
+        // アバター変更関数
+        function changeAvatarMsg(msgKey, textOverride = null) {
+            const bubble = document.getElementById('avatar-bubble');
+            const avatarImg = document.getElementById('avatar-img');
+            
+            if (textOverride) {
+                bubble.innerText = textOverride;
+            } else if (avatarMessages[msgKey]) {
+                bubble.innerText = avatarMessages[msgKey];
+            }
+
+            // キャラクター画像を細かく適用する
+            if (msgKey === 'recordingDone' || msgKey === 'playlistMode') {
+                avatarImg.src = '011.png'; // ハート目
+            } else if (msgKey === 'syncRequest' || msgKey === 'emptyList') {
+                avatarImg.src = '024.png'; // うるうる涙
+            } else if (msgKey === 'syncSuccess' || msgKey === 'cachedDone') {
+                avatarImg.src = '006.png'; // 笑顔
+            } else if (msgKey === 'noResult') {
+                avatarImg.src = '010.png'; // 困り顔
+            } else if (msgKey === 'musicMatched') {
+                avatarImg.src = '031.png'; // サングラス
+            } else {
+                avatarImg.src = '001.png'; // 通常真顔
+            }
+        }
 
         // データの保存
         function saveSongsToStorage() {
@@ -760,6 +831,12 @@
         }
         function savePlaylistsToStorage() {
             localStorage.setItem('utalog_playlists', JSON.stringify(playlists));
+        }
+        function saveCloudBaseUrl() {
+            const rawUrl = document.getElementById('cloud-base-url-input').value.trim();
+            cloudBaseUrl = convertToDirectStreamUrl(rawUrl);
+            localStorage.setItem('utalog_cloud_url', cloudBaseUrl);
+            updateSyncDotStatus();
         }
 
         // 共通クラウド直リンク自動コンバータ（Googleドライブ, Dropbox, OneDrive, iCloud共有 対応）
@@ -789,13 +866,6 @@
 
             document.getElementById('cloud-convert-feedback').classList.add('hidden');
             return cleanUrl;
-        }
-
-        function saveCloudBaseUrl() {
-            const rawUrl = document.getElementById('cloud-base-url-input').value.trim();
-            cloudBaseUrl = convertToDirectStreamUrl(rawUrl);
-            localStorage.setItem('utalog_cloud_url', cloudBaseUrl);
-            updateSyncDotStatus();
         }
 
         // マニュアルアコーディオン開閉
@@ -883,7 +953,7 @@
             chevron.classList.toggle('rotate-90');
         }
 
-        // --- 曲リストのレンダリング (文字を大きく視認性向上) ---
+        // --- 曲リストのレンダリング ---
         function renderSongsList(filteredSongs = null) {
             const container = document.getElementById('songs-list-container');
             container.innerHTML = '';
@@ -923,11 +993,9 @@
                 }
 
                 const card = document.createElement('div');
-                // AIバックグラウンド更新時に視認しやすいよう、調査中のアイテムはローディングスピナーを少し回す
                 const isAnalyzing = song.isAiAnalyzing || false;
 
-                // 新しく調査されたアイテムは「パタパタ」とアニメーションさせるためのクラスを一時付与
-                card.className = `bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between hover:border-violet-500/30 transition-all shadow-md group relative ${isAnalyzing ? 'border-dashed border-violet-500/60' : ''}`;
+                card.className = `bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between hover:border-violet-500/30 transition-all shadow-md group relative ${isAnalyzing ? 'border-dashed border-violet-500/60 animate-pulse' : ''}`;
                 card.id = `song-card-${song.id}`;
 
                 let starsHtml = '';
@@ -940,6 +1008,7 @@
                     diffHtml += `<i class="fa-solid fa-fire text-xs ${i <= (song.difficulty || 0) ? 'text-rose-500' : 'text-slate-700'}"></i>`;
                 }
 
+                // 試聴状態インジケータ文字
                 let streamBadgeText = "未同期";
                 let streamBadgeClass = "text-slate-500";
                 let streamIcon = "fa-triangle-exclamation text-slate-600";
@@ -953,6 +1022,27 @@
                     streamBadgeClass = "text-indigo-400";
                     streamIcon = "fa-cloud text-indigo-400";
                 }
+
+                // IndexedDB内にWAVデータが格納されているかどうかの非同期判定を処理するためのチェック
+                // この非同期結果に基づき、DBキャッシュボタンのアイコンや表示を書き換えます
+                let cacheButtonHtml = `
+                    <button onclick="openDbCacheModal('${song.id}', event)" class="text-xs text-slate-400 hover:text-emerald-400 font-extrabold flex items-center gap-1.5 border border-slate-800 bg-slate-950 px-2.5 py-1 rounded-xl transition" title="スマホにWAVをキャッシュ保存">
+                        <i class="fa-solid fa-hard-drive text-[10px]"></i> 本体保存 💾
+                    </button>
+                `;
+
+                // キャッシュされているかどうかの非同期簡易判定 (DB読み込み)
+                // 各カード個別にIndexedDBストアにデータが存在するか非同期で調べてUIを書き換える手法を採用します
+                checkSongCached(song.id).then(isCached => {
+                    const cacheBadge = document.getElementById(`cache-badge-${song.id}`);
+                    if (isCached && cacheBadge) {
+                        cacheBadge.innerHTML = `
+                            <span class="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5 border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-xl">
+                                <i class="fa-solid fa-circle-check text-[10px]"></i> 本体保存済 💾
+                            </span>
+                        `;
+                    }
+                });
 
                 card.innerHTML = `
                     <div class="flex items-start justify-between gap-3.5">
@@ -978,7 +1068,7 @@
                             <img src="${cardAvatar}" onerror="this.src='001.png'" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity">
                         </div>
 
-                        <!-- 曲情報 -->
+                        <!-- 曲情報 (文字サイズを大きく調整) -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <h4 class="text-sm font-black text-slate-100 truncate max-w-[160px]">${song.title}</h4>
@@ -1028,6 +1118,11 @@
                         </div>
                         
                         <div class="flex items-center gap-1.5">
+                            <!-- 新設：キャッシュ保存インジケータ/ボタン -->
+                            <div id="cache-badge-${song.id}" class="flex-shrink-0">
+                                ${cacheButtonHtml}
+                            </div>
+                            
                             <!-- 似た音域を検索するワンタップマッチボタン -->
                             <button onclick="filterSimilarRange('${song.id}', event)" class="text-xs text-violet-400 hover:text-violet-300 font-black flex items-center gap-1.5 border border-violet-500/20 bg-violet-500/5 px-2.5 py-1 rounded-xl transition" title="この曲と最高音が同じ曲を検索">
                                 <i class="fa-solid fa-magnifying-glass text-[10px]"></i> 音域マッチ🔍
@@ -1048,6 +1143,35 @@
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // --- 似た音域の曲をワンタップ検索するロジック ---
+        function filterSimilarRange(songId, event) {
+            event.stopPropagation();
+            const song = songs.find(s => s.id === songId);
+            if (!song) return;
+
+            const targetChest = song.chestVoiceMax;
+            const targetFalsetto = song.falsettoVoiceMax;
+
+            if (!targetChest && !targetFalsetto) {
+                showToast("最高音情報が設定されていません", "fa-triangle-exclamation", "text-amber-400", "010.png");
+                return;
+            }
+
+            const matched = songs.filter(s => {
+                const isChestMatch = targetChest && s.chestVoiceMax && s.chestVoiceMax.toLowerCase() === targetChest.toLowerCase();
+                const isFalsettoMatch = targetFalsetto && s.falsettoVoiceMax && s.falsettoVoiceMax.toLowerCase() === targetFalsetto.toLowerCase();
+                return isChestMatch || isFalsettoMatch;
+            });
+
+            const badge = document.getElementById('active-match-badge');
+            badge.innerText = `最高音 ${targetChest || targetFalsetto} マッチ中`;
+            badge.classList.remove('hidden');
+
+            renderSongsList(matched);
+            changeAvatarMsg('musicMatched', `「${song.title}」と最高音（${targetChest || targetFalsetto}）が同じ曲をマッチングしました！`);
+            showToast("似た最高音の曲をマッチングしました", "fa-magnifying-glass", "text-violet-400", "031.png");
         }
 
         // --- 検索および詳細フィルター適用 ---
@@ -1127,6 +1251,67 @@
                 `;
                 container.appendChild(item);
             });
+        }
+
+        function playSmartList(type) {
+            let listToPlay = [];
+            let listName = "";
+
+            if (type === 'recent') {
+                listToPlay = [...songs]
+                    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+                    .slice(0, 15);
+                listName = "最新 15 曲";
+            } else if (type === 'highly-rated') {
+                listToPlay = songs.filter(s => (s.stars || 0) >= 4);
+                listName = "高評価ベスト";
+            } else if (type === 'practice') {
+                listToPlay = songs.filter(s => s.status === '練習中');
+                listName = "特訓中課題リスト";
+            } else if (type === 'shuffle-all') {
+                listToPlay = [...songs];
+                listName = "全曲シャッフル";
+                isShuffle = true;
+                updateShuffleStyle();
+            }
+
+            if (listToPlay.length === 0) {
+                showToast("対象の楽曲が存在しません", "fa-triangle-exclamation", "text-amber-400", "010.png");
+                return;
+            }
+
+            currentPlaylist = { name: listName, list: listToPlay };
+            currentSongIndex = 0;
+
+            if (isShuffle && type !== 'shuffle-all') {
+                shuffleCurrentPlaylist();
+            }
+
+            playCurrentSong();
+            showToast(`${listName} の再生を開始しました`, "fa-play", "text-violet-400", "011.png");
+            changeAvatarMsg('playlistMode');
+        }
+
+        function playPlaylistDirect(playlistId) {
+            const playlist = playlists.find(p => p.id === playlistId);
+            if (!playlist || playlist.songIds.length === 0) {
+                showToast("プレイリストが空です", "fa-triangle-exclamation", "text-amber-400", "010.png");
+                return;
+            }
+
+            const songList = playlist.songIds
+                .map(id => songs.find(s => s.id === id))
+                .filter(Boolean);
+
+            currentPlaylist = { name: playlist.name, list: songList };
+            currentSongIndex = 0;
+
+            if (isShuffle) {
+                shuffleCurrentPlaylist();
+            }
+
+            playCurrentSong();
+            showToast(`${playlist.name} を再生します`, "fa-compact-disc", "text-violet-400", "011.png");
         }
 
         function showPlaylistSelector(songId, event) {
@@ -1216,47 +1401,303 @@
             }
         }
 
-        // --- オーディオプレイヤー中枢 ---
-        function initAudioEventListeners() {
-            audioEl.addEventListener('timeupdate', () => {
-                const current = audioEl.currentTime;
-                const duration = audioEl.duration || 0;
-                
-                const percent = duration > 0 ? (current / duration) * 100 : 0;
-                document.getElementById('player-progress').style.width = `${percent}%`;
+        // --- オーディオビジュアライザ (Web Audio API 波形ディスプレイ) ---
+        function setupCanvasSize() {
+            const canvas = document.getElementById('waveform-canvas');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
 
-                document.getElementById('player-time-current').innerText = formatTime(current);
-                document.getElementById('player-time-total').innerText = formatTime(duration);
-            });
+        window.addEventListener('resize', setupCanvasSize);
 
-            audioEl.addEventListener('ended', () => {
-                if (repeatMode === 'one') {
-                    audioEl.currentTime = 0;
-                    audioEl.play();
+        function initAudioContext() {
+            if (isAudioContextInitialized) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyserNode = audioCtx.createAnalyser();
+                analyserNode.fftSize = 256;
+
+                // MediaElementSourceをつなぐ
+                audioSourceNode = audioCtx.createMediaElementSource(audioEl);
+                audioSourceNode.connect(analyserNode);
+                analyserNode.connect(audioCtx.destination);
+
+                isAudioContextInitialized = true;
+                startVisualizerAnimation();
+            } catch (e) {
+                console.warn("Web Audio API初期化エラー (疑似ビジュアライザに移行します):", e);
+                isAudioContextInitialized = false;
+                startVisualizerAnimation(); // 疑似ビジュアライザとして起動
+            }
+        }
+
+        function startVisualizerAnimation() {
+            const canvas = document.getElementById('waveform-canvas');
+            const ctx = canvas.getContext('2d');
+            const bufferLength = analyserNode ? analyserNode.frequencyBinCount : 128;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                visualizerAnimationId = requestAnimationFrame(draw);
+                const W = canvas.width;
+                const H = canvas.height;
+
+                ctx.clearRect(0, 0, W, H);
+
+                let isWaveActive = isPlaying;
+
+                if (isWaveActive) {
+                    if (isAudioContextInitialized && analyserNode) {
+                        // CORSによる制限でオーディオ分析から0データしか得られない場合は疑似波形を混ぜる
+                        analyserNode.getByteTimeDomainData(dataArray);
+                        
+                        let hasRealSignal = false;
+                        for(let i=0; i<bufferLength; i++) {
+                            if(dataArray[i] !== 128) {
+                                hasRealSignal = true;
+                                break;
+                            }
+                        }
+
+                        if (!hasRealSignal) {
+                            // CORSで音声がマスクされている場合は、再生中であるため疑似ビジュアライザデータを充当
+                            fillMockDataArray(dataArray, bufferLength);
+                        }
+                    } else {
+                        // Web Audio非初期化 or シンセサイザー再生時
+                        fillMockDataArray(dataArray, bufferLength);
+                    }
                 } else {
-                    playNextSong();
+                    // 停止中
+                    for (let i = 0; i < bufferLength; i++) {
+                        dataArray[i] = 128;
+                    }
                 }
+
+                // 描画ロジック：美しくうねるネオンパープルライン
+                ctx.lineWidth = 4;
+                
+                // ネオングラデーションの生成
+                const gradient = ctx.createLinearGradient(0, 0, W, 0);
+                gradient.addColorStop(0, '#8b5cf6'); // Violet 500
+                gradient.addColorStop(0.5, '#ec4899'); // Pink 500
+                gradient.addColorStop(1, '#8b5cf6');
+
+                ctx.strokeStyle = gradient;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = 'rgba(236, 72, 153, 0.4)';
+
+                ctx.beginPath();
+                const sliceWidth = W / bufferLength;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * H) / 2;
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+
+                    x += sliceWidth;
+                }
+
+                ctx.lineTo(W, H / 2);
+                ctx.stroke();
+                
+                // 影効果のリセット (他描画への影響回避)
+                ctx.shadowBlur = 0;
+            }
+
+            draw();
+        }
+
+        // 音声がCORS制限等で無音を返す際の、美しいうねりをシミュレーションする関数
+        function fillMockDataArray(arr, len) {
+            mockWaveAngle += 0.08;
+            for (let i = 0; i < len; i++) {
+                // サイン波を重ね合わせて有機的なうねりを生成
+                const s1 = Math.sin(i * 0.1 + mockWaveAngle) * 35;
+                const s2 = Math.sin(i * 0.05 - mockWaveAngle * 0.5) * 15;
+                arr[i] = 128 + s1 + s2;
+            }
+        }
+
+
+        // --- インタラクティブ・シークバードラッグ/タッチ制御 (新設) ---
+        function setupSeekDragEvents() {
+            const container = document.getElementById('seekbar-container');
+            const handle = document.getElementById('seekbar-handle');
+
+            // マウスおよびタッチイベントの統合処理
+            container.addEventListener('mousedown', startSeekDrag);
+            container.addEventListener('touchstart', startSeekDrag, { passive: true });
+
+            window.addEventListener('mousemove', handleSeekDrag);
+            window.addEventListener('touchmove', handleSeekDrag, { passive: false });
+
+            window.addEventListener('mouseup', endSeekDrag);
+            window.addEventListener('touchend', endSeekDrag);
+        }
+
+        function startSeekDrag(e) {
+            // シンセサイザー動作時はシークを制限
+            if (synthInterval) return; 
+
+            isDraggingSeek = true;
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            updateSeekPosWithEvent(e);
+        }
+
+        function handleSeekDrag(e) {
+            if (!isDraggingSeek) return;
+            // スクロールを一時的に防止してシーク操作をなめらかにする
+            if (e.cancelable) e.preventDefault();
+            updateSeekPosWithEvent(e);
+        }
+
+        function endSeekDrag(e) {
+            if (!isDraggingSeek) return;
+            isDraggingSeek = false;
+
+            // ドラッグ終了時の最終地点を適用
+            if (audioEl.duration) {
+                const percent = parseFloat(document.getElementById('player-progress').style.width) / 100;
+                audioEl.currentTime = percent * audioEl.duration;
+            }
+        }
+
+        function updateSeekPosWithEvent(e) {
+            const container = document.getElementById('seekbar-container');
+            const rect = container.getBoundingClientRect();
+            
+            // タッチとクリックイベントの両方のクライアントXを吸収
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let relativeX = clientX - rect.left;
+
+            // 境界のクリッピング
+            if (relativeX < 0) relativeX = 0;
+            if (relativeX > rect.width) relativeX = rect.width;
+
+            const percent = (relativeX / rect.width) * 100;
+            document.getElementById('player-progress').style.width = `${percent}%`;
+
+            // 表示する時間テキストもスライドに合わせてリアルタイムに更新
+            if (audioEl.duration) {
+                const estTime = (percent / 100) * audioEl.duration;
+                document.getElementById('player-time-current').innerText = formatTime(estTime);
+            }
+        }
+
+
+        // --- IndexedDB「本体保存 💾」ロジック (新設) ---
+        function openDbCacheModal(songId, event) {
+            event.stopPropagation();
+            const song = songs.find(s => s.id === songId);
+            if (!song) return;
+
+            cacheTargetSongId = songId;
+            document.getElementById('cache-target-title').innerText = song.title;
+            document.getElementById('cache-target-filename').innerText = song.fileName || "ファイル名未定";
+
+            const modal = document.getElementById('db-cache-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDbCacheModal() {
+            document.getElementById('db-cache-modal').classList.add('hidden');
+            document.getElementById('db-cache-modal').classList.remove('flex');
+            document.getElementById('db-cache-file-input').value = "";
+        }
+
+        // IndexedDBにファイルをバイナリデータとして登録する
+        function storeWavInIndexedDb(event) {
+            const file = event.target.files[0];
+            if (!file || !dbInstance || !cacheTargetSongId) return;
+
+            const transaction = dbInstance.transaction([STORE_NAME], "readwrite");
+            const store = transaction.objectStore(STORE_NAME);
+
+            const record = {
+                songId: cacheTargetSongId,
+                fileData: file, // Fileオブジェクトはそのままバイナリとして格納できます
+                fileName: file.name,
+                savedAt: Date.now()
+            };
+
+            const request = store.put(record);
+            
+            request.onsuccess = () => {
+                showToast("スマホ本体へのWAVキャッシュ保存が完了しました！", "fa-hard-drive", "text-emerald-400", "006.png");
+                changeAvatarMsg('cachedDone');
+                
+                // mappedFilesにも即時にキャッシュを設定
+                mappedFiles[file.name] = file;
+
+                closeDbCacheModal();
+                updateSyncDotStatus();
+                renderSongsList();
+            };
+
+            request.onerror = (err) => {
+                console.error("本体保存エラー:", err);
+                showToast("保存に失敗しました。容量をお確かめください。", "fa-triangle-exclamation", "text-rose-400", "010.png");
+            };
+        }
+
+        // IndexedDBに曲データが保存されているか非同期で判定する関数
+        function checkSongCached(songId) {
+            return new Promise((resolve) => {
+                if (!dbInstance) {
+                    resolve(false);
+                    return;
+                }
+
+                const transaction = dbInstance.transaction([STORE_NAME], "readonly");
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(songId);
+
+                request.onsuccess = (e) => {
+                    resolve(e.target.result ? true : false);
+                };
+                request.onerror = () => resolve(false);
             });
         }
 
-        function playSongDirect(songId) {
-            currentPlaylist = { name: "選択中フォルダの一覧", list: [...songs] };
-            currentSongIndex = currentPlaylist.list.findIndex(s => s.id === songId);
-            
-            if (currentSongIndex === -1) return;
+        // IndexedDBからデータを取得する
+        function getSongFromCache(songId) {
+            return new Promise((resolve) => {
+                if (!dbInstance) {
+                    resolve(null);
+                    return;
+                }
+                const transaction = dbInstance.transaction([STORE_NAME], "readonly");
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(songId);
 
-            playCurrentSong();
+                request.onsuccess = (e) => {
+                    resolve(e.target.result || null);
+                };
+                request.onerror = () => resolve(null);
+            });
         }
 
-        // メモリリークを完全に抑え込んだ高音質ストリーミング再生ロジック
-        function playCurrentSong() {
+
+        // --- 再生機能の IndexedDB / クラウド統合版 ---
+        async function playCurrentSong() {
             if (currentPlaylist.list.length === 0 || currentSongIndex < 0 || currentSongIndex >= currentPlaylist.list.length) {
                 return;
             }
 
             const song = currentPlaylist.list[currentSongIndex];
-            const hasLocalFile = mappedFiles[song.fileName];
-            const hasCloudStreaming = cloudBaseUrl !== "" && song.fileName;
+            
+            // Web Audio API とオーディオコンテキストをユーザーアクション内で安全に初期化
+            initAudioContext();
 
             document.getElementById('player-song-title').innerText = song.title;
             document.getElementById('player-song-artist').innerText = song.artist || "アーティスト不明";
@@ -1265,13 +1706,32 @@
 
             document.getElementById('global-player').classList.remove('translate-y-full');
 
-            // 既存のBlob URLがあれば即座に解放
             if (currentBlobUrl) {
                 URL.revokeObjectURL(currentBlobUrl);
                 currentBlobUrl = null;
             }
 
-            if (hasLocalFile) {
+            // --- 試聴ソース最優先順：1. 本体保存（IndexedDB） ➔ 2. iCloud一時同期 ➔ 3. クラウド配信 ---
+            const dbRecord = await getSongFromCache(song.id);
+            const hasLocalFile = mappedFiles[song.fileName];
+            const hasCloudStreaming = cloudBaseUrl !== "" && song.fileName;
+
+            if (dbRecord && dbRecord.fileData) {
+                // 1. スマホ本体に永続保存されていた場合
+                try {
+                    currentBlobUrl = URL.createObjectURL(dbRecord.fileData);
+                    audioEl.src = currentBlobUrl;
+                    audioEl.play()
+                        .then(() => updatePlayPauseState(true))
+                        .catch(err => {
+                            showToast("再生ボタンをタップして再生してください", "fa-play", "text-violet-400", "001.png");
+                            updatePlayPauseState(false);
+                        });
+                } catch(e) {
+                    playDummySynthesizer(song);
+                }
+            } else if (hasLocalFile) {
+                // 2. iCloudで一時マッピングされていた場合
                 if (hasLocalFile.size === 0) {
                     showToast("iCloud上で未ダウンロード状態のファイルです", "fa-triangle-exclamation", "text-amber-500", "024.png");
                     openTroubleShootModal();
@@ -1283,11 +1743,8 @@
                     currentBlobUrl = URL.createObjectURL(hasLocalFile);
                     audioEl.src = currentBlobUrl;
                     audioEl.play()
-                        .then(() => {
-                            updatePlayPauseState(true);
-                        })
+                        .then(() => updatePlayPauseState(true))
                         .catch(err => {
-                            console.error("再生エラー:", err);
                             showToast("再生ボタンをタップして再生してください", "fa-play", "text-violet-400", "001.png");
                             updatePlayPauseState(false);
                         });
@@ -1295,16 +1752,14 @@
                     playDummySynthesizer(song);
                 }
             } else if (hasCloudStreaming) {
-                // クラウド・フォルダURLストリーミング方式
+                // 3. クラウドベースURLストリーミング
                 try {
                     const cleanBaseUrl = cloudBaseUrl.endsWith('/') ? cloudBaseUrl : cloudBaseUrl + '/';
                     const fullStreamingUrl = cleanBaseUrl + encodeURIComponent(song.fileName);
                     
                     audioEl.src = fullStreamingUrl;
                     audioEl.play()
-                        .then(() => {
-                            updatePlayPauseState(true);
-                        })
+                        .then(() => updatePlayPauseState(true))
                         .catch(err => {
                             console.error("Cloud Streaming 失敗:", err);
                             showToast("クラウド音声の再生に失敗しました。ベースURLをご確認ください。", "fa-cloud-solid", "text-rose-400", "024.png");
@@ -1318,212 +1773,8 @@
             }
         }
 
-        let synthInterval = null;
-        function playDummySynthesizer(song) {
-            stopDummySynthesizer();
-            
-            document.getElementById('avatar-img').src = '024.png'; 
-            showToast("プレビュー旋律（内蔵メロディ）を再生します", "fa-circle-exclamation", "text-amber-500", "024.png");
 
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; 
-            let noteIndex = 0;
-
-            audioEl.src = "";
-            isPlaying = true;
-            updatePlayPauseState(true);
-
-            synthInterval = setInterval(() => {
-                if (!isPlaying) {
-                    stopDummySynthesizer();
-                    return;
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = 'triangle';
-                const keyOffset = song.key || 0;
-                const freq = notes[(noteIndex + Math.abs(keyOffset)) % notes.length];
-                
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                
-                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
-
-                noteIndex++;
-                if (noteIndex > 15) {
-                    stopDummySynthesizer();
-                    playNextSong();
-                }
-            }, 600);
-        }
-
-        function stopDummySynthesizer() {
-            if (synthInterval) {
-                clearInterval(synthInterval);
-                synthInterval = null;
-            }
-        }
-
-        function togglePlayPause() {
-            if (synthInterval) {
-                stopDummySynthesizer();
-                updatePlayPauseState(false);
-                return;
-            }
-
-            if (isPlaying) {
-                audioEl.pause();
-                updatePlayPauseState(false);
-            } else {
-                audioEl.play().then(() => {
-                    updatePlayPauseState(true);
-                }).catch(() => {
-                    if (currentPlaylist.list.length > 0) playCurrentSong();
-                });
-            }
-        }
-
-        function updatePlayPauseState(playing) {
-            isPlaying = playing;
-            const btn = document.getElementById('player-btn-play');
-            const avatar = document.getElementById('player-avatar-img');
-
-            if (playing) {
-                btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-                avatar.classList.add('animate-slow-spin');
-                avatar.src = '031.png'; 
-            } else {
-                btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
-                avatar.classList.remove('animate-slow-spin');
-                avatar.src = '001.png'; 
-            }
-            renderSongsList();
-        }
-
-        function playNextSong() {
-            stopDummySynthesizer();
-            if (currentPlaylist.list.length === 0) return;
-
-            currentSongIndex++;
-            if (currentSongIndex >= currentPlaylist.list.length) {
-                if (repeatMode === 'all') {
-                    currentSongIndex = 0;
-                } else {
-                    currentSongIndex = currentPlaylist.list.length - 1;
-                    showToast("プレイリストの最後に達しました", "fa-info", "text-slate-400", "001.png");
-                    updatePlayPauseState(false);
-                    return;
-                }
-            }
-            playCurrentSong();
-        }
-
-        function playPrevSong() {
-            stopDummySynthesizer();
-            if (currentPlaylist.list.length === 0) return;
-
-            currentSongIndex--;
-            if (currentSongIndex < 0) {
-                if (repeatMode === 'all') {
-                    currentSongIndex = currentPlaylist.list.length - 1;
-                } else {
-                    currentSongIndex = 0;
-                }
-            }
-            playCurrentSong();
-        }
-
-        function openTroubleShootModal() {
-            document.getElementById('troubleshoot-modal').classList.remove('hidden');
-        }
-        function closeTroubleShootModal() {
-            document.getElementById('troubleshoot-modal').classList.add('hidden');
-        }
-
-        function seekAudio(event) {
-            if (synthInterval) return;
-            const bar = document.getElementById('seekbar-container');
-            const rect = bar.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const percent = clickX / rect.width;
-            
-            if (audioEl.duration) {
-                audioEl.currentTime = percent * audioEl.duration;
-            }
-        }
-
-        function toggleRepeatMode() {
-            const btn = document.getElementById('player-btn-repeat');
-            if (repeatMode === 'off') {
-                repeatMode = 'all';
-                btn.className = "text-violet-400 hover:text-violet-300 text-xs transition-colors";
-                showToast("全曲リピートをオンにしました", "fa-repeat", "text-violet-400", "011.png");
-            } else if (repeatMode === 'all') {
-                repeatMode = 'one';
-                btn.className = "text-fuchsia-400 hover:text-fuchsia-300 text-xs transition-colors font-bold";
-                btn.innerHTML = `<i class="fa-solid fa-repeat"></i><span class="text-[8px] absolute -top-1">1</span>`;
-                showToast("1曲リピートをオンにしました", "fa-repeat", "text-fuchsia-400", "011.png");
-            } else {
-                repeatMode = 'off';
-                btn.className = "text-slate-500 hover:text-slate-300 text-xs transition-colors";
-                btn.innerHTML = `<i class="fa-solid fa-repeat"></i>`;
-                showToast("リピートをオフにしました", "fa-repeat", "text-slate-400", "001.png");
-            }
-        }
-
-        function toggleShuffleMode() {
-            isShuffle = !isShuffle;
-            updateShuffleStyle();
-
-            if (isShuffle) {
-                shuffleCurrentPlaylist();
-                showToast("シャッフル再生をONにしました", "fa-shuffle", "text-emerald-400", "031.png");
-            } else {
-                if (originalShuffleList.length > 0) {
-                    const currentSong = currentPlaylist.list[currentSongIndex];
-                    currentPlaylist.list = [...originalShuffleList];
-                    currentSongIndex = currentPlaylist.list.findIndex(s => s.id === currentSong.id);
-                }
-                showToast("シャッフル再生をOFFにしました", "fa-shuffle", "text-slate-400", "001.png");
-            }
-        }
-
-        function updateShuffleStyle() {
-            const btn = document.getElementById('player-btn-shuffle');
-            if (isShuffle) {
-                btn.className = "text-emerald-400 hover:text-emerald-300 text-xs transition-colors font-bold";
-            } else {
-                btn.className = "text-slate-500 hover:text-slate-300 text-xs transition-colors";
-            }
-        }
-
-        function shuffleCurrentPlaylist() {
-            originalShuffleList = [...currentPlaylist.list];
-            const currentSong = currentPlaylist.list[currentSongIndex];
-            
-            for (let i = currentPlaylist.list.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [currentPlaylist.list[i], currentPlaylist.list[j]] = [currentPlaylist.list[j], currentPlaylist.list[i]];
-            }
-
-            if (currentSong) {
-                const newIdx = currentPlaylist.list.findIndex(s => s.id === currentSong.id);
-                if (newIdx > -1) {
-                    [currentPlaylist.list[0], currentPlaylist.list[newIdx]] = [currentPlaylist.list[newIdx], currentPlaylist.list[0]];
-                    currentSongIndex = 0;
-                }
-            }
-        }
-
-
-        // --- コピペ貼り付けテキスト（WAVファイル一覧）から一括パース ＆ 登録システム ---
+        // --- コピペ貼り付けテキストから一括パース ＆ 登録システム ---
         function parseAndImportTextFiles() {
             const textInput = document.getElementById('bulk-filenames-input').value.trim();
             if (!textInput) {
@@ -1537,11 +1788,11 @@
             lines.forEach(filename => {
                 const rawName = filename.substring(0, filename.lastIndexOf('.')) || filename;
                 
-                // 新：「アーティスト名_曲名_バージョン番号」のパース
                 let estimatedArtist = "自主歌唱録音";
                 let estimatedTitle = rawName;
                 let estimatedNotes = "";
 
+                // 仕様通りの「アーティスト名_曲名_バージョン番号」のパース
                 if (rawName.includes('_')) {
                     const parts = rawName.split('_');
                     if (parts.length >= 2) {
@@ -1729,7 +1980,7 @@
             return null;
         }
 
-        // --- 新機能：バックグラウンド非同期AIタスク処理システム ---
+        // --- バックグラウンド非同期AIタスク処理システム ---
         function pushToAiQueue(songId) {
             aiTaskQueue.push(songId);
             aiQueueTotal = aiTaskQueue.length + aiQueueCompleted;
@@ -1759,7 +2010,6 @@
                 isProcessingAiQueue = false;
                 updateBgProgressUI();
                 
-                // すべて完了した際は 笑顔「006.png」でお知らせ
                 document.getElementById('avatar-img').src = '006.png';
                 changeAvatarMsg('syncSuccess', "すべての登録曲について、裏での最高音・ジャンル調査がバッチリ完了しました！");
                 showToast("すべてのAI最高音調査が完了しました！", "fa-circle-check", "text-emerald-400", "006.png");
@@ -1778,14 +2028,12 @@
             if (songIndex !== -1) {
                 const song = songs[songIndex];
 
-                // 既にAI調査完了していればスキップ
                 if (song.isAiAnalyzed) {
                     aiQueueCompleted++;
                     processNextAiTask();
                     return;
                 }
 
-                // カード個別を「調査中」のアニメーション枠線にする
                 songs[songIndex].isAiAnalyzing = true;
                 renderSongsList();
 
@@ -1795,7 +2043,6 @@
                         songs[songIndex].chestVoiceMax = aiData.chest || "hiA";
                         songs[songIndex].falsettoVoiceMax = aiData.falsetto || "hiC";
                         songs[songIndex].category = aiData.category || "J-POP";
-                        // 日付・ver情報など元ファイル由来のメモをマージ
                         songs[songIndex].notes = (song.notes ? `${song.notes} | ` : '') + (aiData.notes || "歌唱アドバイス");
                         songs[songIndex].isAiAnalyzed = true;
                     }
@@ -1807,7 +2054,6 @@
                     saveSongsToStorage();
                     renderSongsList();
                     
-                    // カード更新時にパタパタ光るフェードクラスを付与
                     const updatedCard = document.getElementById(`song-card-${songId}`);
                     if (updatedCard) {
                         updatedCard.classList.add('fade-update');
@@ -1816,25 +2062,23 @@
                 }
             }
 
-            // API制限を考慮しつつ次のタスクへ移行
             setTimeout(processNextAiTask, 500);
         }
 
-        // 新規検出曲の一括インポート (仮登録 ➔ バックグラウンド非同期調査に投げ込むので、全画面フリーズはもうありません)
+        // 新規検出曲の一括インポート
         async function importDetectedSongs() {
             if (detectedNewSongs.length === 0) return;
 
             const isAiEnabled = document.getElementById('ai-lookup-toggle').checked;
             const total = detectedNewSongs.length;
             
-            // 待たせることなく、即座に仮データで300曲リストを作成して登録完了させる
             detectedNewSongs.forEach(ns => {
                 const newSong = {
                     id: 'song-' + Date.now() + Math.random().toString(36).substr(2, 5),
                     title: ns.title,
                     artist: ns.artist,
-                    chestVoiceMax: isAiEnabled ? "" : "hiA",       // AIが裏で埋めるため最初は空に
-                    falsettoVoiceMax: isAiEnabled ? "" : "hiC",   // AIが裏で埋めるため最初は空に
+                    chestVoiceMax: isAiEnabled ? "" : "hiA",       
+                    falsettoVoiceMax: isAiEnabled ? "" : "hiC",   
                     difficulty: 3,
                     stars: 3,
                     key: 0,
@@ -1842,14 +2086,13 @@
                     fileName: ns.fileName,
                     category: isAiEnabled ? "" : "J-POP",
                     notes: ns.notes || "録音完了！",
-                    isAiAnalyzed: !isAiEnabled, // AI調査オフの場合は完了扱いにする
+                    isAiAnalyzed: !isAiEnabled, 
                     isAiAnalyzing: false,
                     updatedAt: Date.now()
                 };
 
                 songs.push(newSong);
 
-                // AI調査が有効な場合、裏の処理キューに投げ込む
                 if (isAiEnabled) {
                     pushToAiQueue(newSong.id);
                 }
@@ -1986,6 +2229,14 @@
         function deleteSong(songId) {
             if (confirm("本当にこの曲を削除しますか？")) {
                 songs = songs.filter(s => s.id !== songId);
+                
+                // キャッシュの削除も並行処理
+                if (dbInstance) {
+                    const transaction = dbInstance.transaction([STORE_NAME], "readwrite");
+                    const store = transaction.objectStore(STORE_NAME);
+                    store.delete(songId);
+                }
+
                 saveSongsToStorage();
                 renderSongsList();
                 showToast("曲を削除しました", "fa-trash-can", "text-slate-400", "010.png");
@@ -2008,6 +2259,13 @@
                         currentBlobUrl = null;
                     }
 
+                    // IndexedDBのキャッシュデータも一挙にクリア
+                    if (dbInstance) {
+                        const transaction = dbInstance.transaction([STORE_NAME], "readwrite");
+                        const store = transaction.objectStore(STORE_NAME);
+                        store.clear();
+                    }
+
                     saveSongsToStorage();
                     savePlaylistsToStorage();
                     renderSongsList();
@@ -2023,7 +2281,7 @@
             }
         }
 
-        // --- バックアップ入出力システム ---
+        // バックアップ・データ管理
         function exportBackupData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ songs, playlists }));
             const downloadAnchor = document.createElement('a');
@@ -2058,7 +2316,7 @@
             reader.readAsText(file);
         }
 
-        // --- デモ用サンプルロード ---
+        // デモ用サンプルロード
         function loadSampleSongs() {
             const samples = [
                 {
@@ -2114,7 +2372,14 @@
             showToast("デモ曲3曲を生成しました！", "fa-wand-magic-sparkles", "text-violet-400", "006.png");
         }
 
-        // --- トースト通知システム (アバター表情連動) ---
+        // キャッシュ保存用フォームモーダル開閉
+        function closeDbCacheModal() {
+            document.getElementById('db-cache-modal').classList.add('hidden');
+            document.getElementById('db-cache-modal').classList.remove('flex');
+            document.getElementById('db-cache-file-input').value = "";
+        }
+
+        // トースト通知システム
         function showToast(text, iconClass, colorClass, avatarSrc = "001.png") {
             const toast = document.getElementById('toast-message');
             const icon = document.getElementById('toast-icon');
