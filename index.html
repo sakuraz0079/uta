@@ -74,7 +74,7 @@
             </div>
             <div>
                 <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">UTALOG MOBILE</h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v3.0 Waveform Timeline & Big Player</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v3.0.1 Stable Sync Edition</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -117,7 +117,7 @@
                     <i class="fa-solid fa-sparkles text-[10px]"></i> UtaLog Assistant
                 </p>
                 <!-- スマホで見やすい13px・ゆったりめの行間 -->
-                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">歌唱リストを極限までシンプルに、再生画面を画面の半分サイズに巨大化させました！WAVのデコード波形を見ながら快適にシークできますよ！</p>
+                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">ファイル名の認識エラーを完全にシャッフル修正しました！クリップボード一括コピー機能を使えば、300曲を一発で完璧に登録できますよ！</p>
             </div>
         </div>
 
@@ -462,9 +462,9 @@
     </main>
 
     <!-- モバイル固定フローティング・ボトムプレイヤー (iPhoneのボトムバーで隠れず、画面の下半分を大きく専有するハーフシートプレイヤー設計) -->
-    <div id="global-player" class="fixed bottom-5 left-4 right-4 z-50 bg-slate-950/98 backdrop-blur-2xl border border-slate-800/80 p-5 rounded-[32px] shadow-2xl transition-all duration-500 translate-y-[150%] overflow-hidden neon-border-violet flex flex-col justify-between min-h-[420px] md:min-h-[450px]">
+    <div id="global-player" class="fixed bottom-5 left-4 right-4 z-50 bg-slate-950/98 backdrop-blur-xl border border-slate-800/80 p-5 rounded-[32px] shadow-2xl transition-all duration-300 translate-y-[150%] overflow-hidden neon-border-violet flex flex-col justify-between min-h-[420px] md:min-h-[450px]">
         
-        <!-- 背景に流れる美しいCanvasオーディオ波形 (CORS配慮の疑似シミュレーター付き) -->
+        <!-- 背景に流れる美しいCanvasオーディオ波形 -->
         <canvas id="waveform-canvas" class="absolute inset-0 w-full h-full opacity-20 pointer-events-none z-0"></canvas>
 
         <div class="space-y-4 w-full relative z-10 flex-1 flex flex-col justify-around">
@@ -502,7 +502,7 @@
                             <div id="player-progress" class="h-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full w-0 relative">
                             </div>
                         </div>
-                        <div id="seekbar-handle" class="absolute w-5 h-5 rounded-full bg-white shadow-xl border-2 border-violet-500 scale-100 transition-transform active:scale-125 z-30" style="left: 0%; transform: translate(-50%, -65%)"></div>
+                        <div id="seekbar-handle" class="absolute w-5 h-5 rounded-full bg-white shadow-md border-2 border-violet-500 scale-100 transition-transform active:scale-125 z-30" style="left: 0%; transform: translate(-50%, -65%)"></div>
                     </div>
                     <span id="player-time-total" class="text-xs font-black text-slate-400 w-12 text-left">00:00</span>
                 </div>
@@ -535,7 +535,7 @@
         </div>
     </div>
 
-    <!-- モダール 5: 個別曲詳細ダイアログページ (最高音やコメント、音域マッチをここに集約・新設) -->
+    <!-- モダール 5: 個別曲詳細ダイアログページ -->
     <div id="song-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 hidden overflow-y-auto">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl relative my-auto">
             <div class="absolute top-5 right-5">
@@ -1274,6 +1274,226 @@
             }
         }
 
+        let synthInterval = null;
+        function playDummySynthesizer(song) {
+            stopDummySynthesizer();
+            
+            document.getElementById('avatar-img').src = '024.png'; 
+            showToast("プレビュー旋律（内蔵メロディ）を再生します", "fa-circle-exclamation", "text-amber-500", "024.png");
+
+            const audioCtxTemp = new (window.AudioContext || window.webkitAudioContext)();
+            const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; 
+            let noteIndex = 0;
+
+            audioEl.src = "";
+            isPlaying = true;
+            updatePlayPauseState(true);
+
+            synthInterval = setInterval(() => {
+                if (!isPlaying) {
+                    stopDummySynthesizer();
+                    return;
+                }
+                const osc = audioCtxTemp.createOscillator();
+                const gain = audioCtxTemp.createGain();
+                
+                osc.type = 'triangle';
+                const keyOffset = song.key || 0;
+                const freq = notes[(noteIndex + Math.abs(keyOffset)) % notes.length];
+                
+                osc.frequency.setValueAtTime(freq, audioCtxTemp.currentTime);
+                
+                gain.gain.setValueAtTime(0.12, audioCtxTemp.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtxTemp.currentTime + 0.45);
+                
+                osc.connect(gain);
+                gain.connect(audioCtxTemp.destination);
+                
+                osc.start();
+                osc.stop(audioCtxTemp.currentTime + 0.5);
+
+                noteIndex++;
+                if (noteIndex > 15) {
+                    stopDummySynthesizer();
+                    playNextSong();
+                }
+            }, 600);
+        }
+
+        function stopDummySynthesizer() {
+            if (synthInterval) {
+                clearInterval(synthInterval);
+                synthInterval = null;
+            }
+        }
+
+        function togglePlayPause() {
+            if (synthInterval) {
+                stopDummySynthesizer();
+                updatePlayPauseState(false);
+                return;
+            }
+
+            if (isPlaying) {
+                audioEl.pause();
+                updatePlayPauseState(false);
+            } else {
+                audioEl.play().then(() => {
+                    updatePlayPauseState(true);
+                }).catch(() => {
+                    if (currentPlaylist.list.length > 0) playCurrentSong();
+                });
+            }
+        }
+
+        function updatePlayPauseState(playing) {
+            isPlaying = playing;
+            const btn = document.getElementById('player-btn-play');
+            const avatar = document.getElementById('player-avatar-img');
+
+            if (playing) {
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+                if (avatar) {
+                    avatar.classList.add('animate-slow-spin');
+                    avatar.src = '031.png'; 
+                }
+            } else {
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+                if (avatar) {
+                    avatar.classList.remove('animate-slow-spin');
+                    avatar.src = '001.png'; 
+                }
+            }
+            renderSongsList();
+        }
+
+        function playNextSong() {
+            stopDummySynthesizer();
+            if (currentPlaylist.list.length === 0) return;
+
+            currentSongIndex++;
+            if (currentSongIndex >= currentPlaylist.list.length) {
+                if (repeatMode === 'all') {
+                    currentSongIndex = 0;
+                } else {
+                    currentSongIndex = currentPlaylist.list.length - 1;
+                    showToast("プレイリストの最後に達しました", "fa-info", "text-slate-400", "001.png");
+                    updatePlayPauseState(false);
+                    return;
+                }
+            }
+            playCurrentSong();
+        }
+
+        function playPrevSong() {
+            stopDummySynthesizer();
+            if (currentPlaylist.list.length === 0) return;
+
+            currentSongIndex--;
+            if (currentSongIndex < 0) {
+                if (repeatMode === 'all') {
+                    currentSongIndex = currentPlaylist.list.length - 1;
+                } else {
+                    currentSongIndex = 0;
+                }
+            }
+            playCurrentSong();
+        }
+
+        // --- Google スプレッドシート CSV 直連携スキャン ---
+        async function syncWithGoogleSheetCSV() {
+            const sheetUrl = document.getElementById('sheet-csv-url').value.trim();
+            if (!sheetUrl) {
+                showToast("Web公開済みのスプレッドシートCSVアドレスを入力してください", "fa-triangle-exclamation", "text-amber-400", "010.png");
+                return;
+            }
+
+            if (!sheetUrl.includes("pub?output=csv") && !sheetUrl.includes("export?format=csv")) {
+                showToast("無効な形式です。公開設定を「カンマ区切り値 (CSV)」にしているかお確かめください。", "fa-circle-exclamation", "text-amber-400", "010.png");
+                return;
+            }
+
+            localStorage.setItem('utalog_sheet_url', sheetUrl);
+            showToast("スプレッドシートを読み込み中...🔄", "fa-arrows-spin animate-spin-slow", "text-violet-400", "001.png");
+
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error("ネットワーク応答に失敗しました。");
+
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).map(r => r.trim()).filter(r => r.length > 0);
+                
+                detectedNewSongs = [];
+                let parseSuccessCount = 0;
+
+                rows.forEach((rowLine) => {
+                    let filename = rowLine.split(",")[0].replace(/^"|"$/g, '').trim();
+                    if (!filename || filename.toLowerCase().includes("ファイル名") || filename.toLowerCase().includes("filename")) {
+                        return;
+                    }
+
+                    const rawName = filename.substring(0, filename.lastIndexOf('.')) || filename;
+                    let estimatedArtist = "自主歌唱録音";
+                    let estimatedTitle = rawName;
+                    let estimatedNotes = "";
+
+                    if (rawName.includes('_')) {
+                        const parts = rawName.split('_');
+                        if (parts.length >= 2) {
+                            estimatedArtist = parts[0].trim(); 
+                            estimatedTitle = parts[1].trim();  
+                            
+                            let versionInfo = parts.slice(2).join('_').trim();
+                            estimatedNotes = versionInfo ? `[ver: ${versionInfo}]` : ``;
+                        }
+                    }
+
+                    detectedNewSongs.push({
+                        fileName: filename,
+                        title: estimatedTitle,
+                        artist: estimatedArtist,
+                        chest: "",
+                        falsetto: "",
+                        category: "J-POP",
+                        notes: estimatedNotes
+                    });
+                    parseSuccessCount++;
+                });
+
+                if (parseSuccessCount > 0) {
+                    const newSongsBox = document.getElementById('new-songs-detected-box');
+                    if (newSongsBox) newSongsBox.classList.remove('hidden');
+                    
+                    const badge = document.getElementById('detected-count-badge');
+                    if (badge) badge.innerText = `${detectedNewSongs.length} 曲`;
+                    
+                    const listContainer = document.getElementById('detected-songs-list');
+                    if (listContainer) {
+                        listContainer.innerHTML = '';
+                        detectedNewSongs.forEach((ns, index) => {
+                            const row = document.createElement('div');
+                            row.className = "flex items-center justify-between text-xs bg-slate-950 p-3 rounded-xl border border-slate-800";
+                            row.innerHTML = `
+                                <div class="truncate pr-2 flex-1">
+                                    <span class="text-violet-400 font-bold">${index + 1}.</span>
+                                    <span class="text-slate-200 font-extrabold">${ns.title}</span>
+                                    <span class="text-slate-400 text-xs ml-1.5 font-bold">by ${ns.artist}</span>
+                                </div>
+                            `;
+                            listContainer.appendChild(row);
+                        });
+                    }
+
+                    showToast(`スプレッドシートから ${parseSuccessCount} 曲を取得しました！`, "fa-check-circle", "text-emerald-400", "006.png");
+                } else {
+                    showToast("ファイル名が読み取れませんでした。1列目にファイル名を入力してください。", "fa-circle-exclamation", "text-amber-400", "010.png");
+                }
+
+            } catch (err) {
+                console.error("スプレッドシートCSV同期エラー:", err);
+                showToast("共有設定が「リンクを知っている全員」になっているかご確認ください。", "fa-triangle-exclamation", "text-rose-400", "010.png");
+            }
+        }
 
         // --- クリップボードからの全自動一括スキャン登録 (新設・スプレッドシート不要の神仕様) ---
         async function readFromClipboardAndParse() {
