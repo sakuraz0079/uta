@@ -549,7 +549,7 @@
     </div>
 
     <!-- モダール 2: プレイリスト新規作成モーダル -->
-    <div id="playlist-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 hidden">
+    <div id="playlist-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
             <h2 class="text-sm font-black text-slate-100 flex items-center gap-1.5">
                 <i class="fa-solid fa-list-ul text-violet-400"></i> カスタムプレイリスト作成
@@ -773,6 +773,32 @@
                     db.createObjectStore(STORE_NAME, { keyPath: "songId" });
                 }
             };
+        }
+
+        // --- オーディオプレイヤーイベント監視登録 (エラー修正：欠落していた定義を復活) ---
+        function initAudioEventListeners() {
+            audioEl.addEventListener('timeupdate', () => {
+                // シークバードラッグ中は進行状況の再描画をストップさせ、ちらつきを防ぐ
+                if (isDraggingSeek) return;
+
+                const current = audioEl.currentTime;
+                const duration = audioEl.duration || 0;
+                
+                const percent = duration > 0 ? (current / duration) * 100 : 0;
+                document.getElementById('player-progress').style.width = `${percent}%`;
+
+                document.getElementById('player-time-current').innerText = formatTime(current);
+                document.getElementById('player-time-total').innerText = formatTime(duration);
+            });
+
+            audioEl.addEventListener('ended', () => {
+                if (repeatMode === 'one') {
+                    audioEl.currentTime = 0;
+                    audioEl.play().catch(err => console.error("リピート再生に失敗しました:", err));
+                } else {
+                    playNextSong();
+                }
+            });
         }
 
         // --- アシスタントアバターのコメント集 ---
@@ -1061,7 +1087,7 @@
                         <!-- 曲情報 (文字サイズを大きく調整) -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-1.5 flex-wrap">
-                                <h4 class="text-sm font-black text-slate-100 truncate max-w-[160px]">${song.title}</h4>
+                                <h4 class="text-sm font-black text-slate-100 truncate max-w-[140px]">${song.title}</h4>
                                 <span class="text-[10px] font-black border px-2 py-0.5 rounded-full ${statusColor}">${song.status}</span>
                                 ${song.category ? `<span class="text-[10px] bg-slate-855 text-slate-300 border border-slate-800 px-2 py-0.5 rounded-full font-bold">${song.category}</span>` : ''}
                             </div>
@@ -1637,6 +1663,7 @@
             });
         }
 
+        // IndexedDBからデータを取得する
         function getSongFromCache(songId) {
             return new Promise((resolve) => {
                 if (!dbInstance) {
@@ -1650,7 +1677,7 @@
                 request.onsuccess = (e) => {
                     resolve(e.target.result || null);
                 };
-                request.onerror = () => resolve(null);
+                request.onerror = () => resolve(false);
             });
         }
 
@@ -1875,7 +1902,7 @@
                     chest: "",
                     falsetto: "",
                     category: "J-POP",
-                    notes: estimatedNotes
+                    notes: notes
                 });
             });
 
