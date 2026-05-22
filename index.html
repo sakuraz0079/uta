@@ -71,7 +71,7 @@
             </div>
             <div>
                 <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">UTALOG MOBILE</h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v2.9 Native Audio & Clipboard Sync</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">v2.9 Folder Sync & Native Audio Edition</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -114,25 +114,198 @@
                     <i class="fa-solid fa-sparkles text-[10px]"></i> UtaLog Assistant
                 </p>
                 <!-- スマホで見やすい13px・ゆったりめの行間 -->
-                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">お待たせしました！スプレッドシートすら不要になり、iPhoneでコピーしたファイル一覧をそのままペーストするだけで一発登録できるようになりました！</p>
+                <p id="avatar-bubble" class="text-[13px] text-slate-200 leading-relaxed font-bold">WAVファイルの再生権を100%キープする「フォルダ監視同期」を最前面に設置しました！ファイルを選択するだけで、新曲追加と再生用紐づけが同時に完了しますよ！</p>
             </div>
         </div>
 
         <!-- タブ切り替えボタン -->
         <div class="bg-slate-900/80 p-1.5 rounded-xl border border-slate-800/50 flex gap-1.5">
-            <button onclick="switchTab('songs')" id="btn-tab-songs" class="tab-btn flex-1 py-3 text-xs md:text-sm font-black rounded-lg transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg">
+            <button onclick="switchTab('sync')" id="btn-tab-sync" class="tab-btn flex-1 py-3 text-xs md:text-sm font-black rounded-lg transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg">
+                <i class="fa-solid fa-rotate-arrows-rotate"></i> フォルダ同期
+            </button>
+            <button onclick="switchTab('songs')" id="btn-tab-songs" class="tab-btn flex-1 py-3 text-xs md:text-sm font-black rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-music"></i> 歌唱リスト
             </button>
             <button onclick="switchTab('playlists')" id="btn-tab-playlists" class="tab-btn flex-1 py-3 text-xs md:text-sm font-black rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-list-ul"></i> プレイリスト
             </button>
-            <button onclick="switchTab('sync')" id="btn-tab-sync" class="tab-btn flex-1 py-3 text-xs md:text-sm font-black rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-rotate-arrows-rotate"></i> クリップボード・同期
-            </button>
+        </div>
+
+        <!-- 3. iCloud・フォルダ同期タブ（ユーザーの要望に基づき、同期を最初のメインページに設定） -->
+        <div id="tab-sync" class="tab-pane space-y-4">
+            
+            <!-- iCloud & スマホフォルダの直接同期（フォルダ選択＆複数ファイルピッカー） -->
+            <div class="bg-slate-900 border border-violet-500/30 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-15 translate-x-3 translate-y-3">
+                    <img src="006.png" class="w-24 h-24 object-contain rounded-full">
+                </div>
+                <div class="flex items-center space-x-2 text-violet-400">
+                    <i class="fa-solid fa-folder-open text-base animate-pulse"></i>
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">iCloud / スマホフォルダ同期スキャナー</h3>
+                </div>
+                
+                <p class="text-xs text-slate-400 leading-relaxed pr-12">
+                    iCloud Drive、OneDrive、または「このiPhone内」にある歌唱WAVフォルダをアプリに同期します。
+                </p>
+
+                <div class="space-y-3 text-xs bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-slate-300 leading-relaxed">
+                    <p class="font-bold text-violet-300"><i class="fa-solid fa-circle-info"></i> スプレッドシートや曲名リストの入力は不要！</p>
+                    <p class="mt-1">
+                        フォルダ内のファイルを読み込ませるだけで、ファイル名から<strong>「アーティスト名_曲名_バージョン番号.wav」</strong>の順で曲情報を全自動でパース。新曲を検出してリストに自動マージし、そのままスマホでWAV再生ができる状態に紐付けます！
+                    </p>
+                </div>
+
+                <div class="flex flex-col gap-3 pt-2">
+                    <!-- スマホ向け（iCloud/ファイルアプリからの複数ファイル一括マッピングピッカー、WKWebViewバグを回避して100%動く仕様） -->
+                    <div class="space-y-1.5">
+                        <span class="text-[10px] font-extrabold text-violet-400 uppercase tracking-wider block flex items-center gap-1">
+                            <i class="fa-solid fa-mobile-screen-button"></i> iPhone・スマートフォン推奨同期
+                        </span>
+                        <label class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 text-white text-xs font-bold py-3.5 rounded-xl text-center cursor-pointer shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-audio text-sm"></i> iCloud / ドライブから録音WAVを全選択して同期
+                            <input type="file" id="iCloud-picker-files" multiple accept=".wav, .mp3, .m4a, audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
+                        </label>
+                        <p class="text-[9px] text-slate-500 text-center">※「すべて選択」でコピーせずに直接マッピングする場合に適しています。</p>
+                    </div>
+
+                    <!-- PC向け（WAVフォルダを丸ごとドラッグアンドドロップ） -->
+                    <div class="space-y-1.5 border-t border-slate-900 pt-3">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block"><i class="fa-solid fa-laptop"></i> PC向け同期 (フォルダ丸ごと選択)</span>
+                        <label class="w-full bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 text-xs font-bold py-2.5 rounded-xl text-center cursor-pointer transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-folder-open text-sm"></i> フォルダごと選択して同期スキャン
+                            <input type="file" id="iCloud-picker" multiple webkitdirectory directory accept=".wav, .mp3, .m4a, audio/*" onchange="syncWithiCloudFolder(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 超簡単：クリップボード一発パース登録（WAVコピー ➔ ペーストでの最強の代替スキャナー） -->
+            <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-15 translate-x-3 translate-y-3">
+                    <img src="Gemini_Generated_Image_dywrhkdywrhkdywr.png" class="w-24 h-24 object-contain rounded-full">
+                </div>
+                <div class="flex items-center space-x-2 text-emerald-400">
+                    <i class="fa-solid fa-clipboard-check text-base animate-pulse"></i>
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">📋 iPhoneクリップボードから一発登録</h3>
+                </div>
+                
+                <p class="text-xs text-slate-400 leading-relaxed pr-12">
+                    ファイルピッカーでのバグを100%回避する一番簡単で画期的な方法です。
+                </p>
+
+                <div class="space-y-3 text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 leading-relaxed">
+                    <p class="font-bold text-emerald-400"><i class="fa-solid fa-mobile-screen-button"></i> iPhoneファイルアプリでの一発操作手順</p>
+                    <p class="mt-1">
+                        1. 標準の<strong>「ファイル」アプリ</strong>でWAVフォルダを開きます。<br>
+                        2. 右上の「三点リーダー(…)」➔「選択」を押し、左上の<strong>「すべて選択」</strong>を押します。<br>
+                        3. 画面下の共有メニュー等から<strong>「コピー」</strong>を選択します。<br>
+                        4. UtaLogに戻り、下のボタンを押してください。一挙に300曲のリストが自動生成されます！
+                    </p>
+                </div>
+
+                <button onclick="readFromClipboardAndParse()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-sm font-black py-4 rounded-xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paste"></i> コピーしたファイル名群から一発自動登録 📋
+                </button>
+            </div>
+
+            <!-- 音声ファイルのストリーミング配信設定 -->
+            <div class="bg-slate-900 border border-violet-500/20 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
+                <div class="flex items-center space-x-2 text-violet-400">
+                    <i class="fa-solid fa-link text-base"></i>
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">Google Drive / OneDrive ストリーミング設定</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    WAVファイルをGoogleドライブなどの公開共有フォルダに置いている場合は、フォルダのURLをここに登録しておくと、毎回ファイルを選び直す必要なくいつでも100%ストリーミング再生が可能です。
+                </p>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                        クラウド共有フォルダのURL（ベースパス）
+                    </label>
+                    <input type="url" id="cloud-base-url-input" oninput="saveCloudBaseUrl()" placeholder="例: https://drive.google.com/drive/folders/your-folder-id" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none transition font-medium">
+                    <p id="cloud-convert-feedback" class="text-[10px] text-indigo-400 mt-1 font-bold hidden"><i class="fa-solid fa-circle-check"></i> 音声ストリーミング用直リンクへ自動変換しました！</p>
+                </div>
+            </div>
+
+            <!-- 新規追加候補インポーター (同期で新しい曲を検出した場合のみ自動出現) -->
+            <div id="new-songs-detected-box" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3.5 shadow-xl relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2 text-amber-400">
+                        <i class="fa-solid fa-circle-exclamation text-base animate-pulse"></i>
+                        <h3 class="text-sm font-black uppercase tracking-wider">未登録の新曲を検出！</h3>
+                    </div>
+                    <span id="detected-count-badge" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-black px-3 py-1 rounded-full">0曲</span>
+                </div>
+                <p class="text-xs text-slate-400">
+                    フォルダから新しく検出された以下の楽曲をUtaLogデータベースにインポートします。
+                </p>
+                <div id="detected-songs-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar border-y border-slate-800 py-2.5">
+                    <!-- 検知された曲のプレビュー -->
+                </div>
+
+                <div class="flex items-center justify-between border-b border-slate-900 pb-2.5">
+                    <div class="space-y-0.5">
+                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1">
+                            <i class="fa-solid fa-robot text-violet-400 animate-pulse"></i> AI最高音・ジャンル自動調査
+                        </span>
+                        <p class="text-[9px] text-slate-500">インポート後、GeminiがWebから裏でこっそり自動判定します</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="ai-lookup-toggle" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-600"></div>
+                    </label>
+                </div>
+
+                <button onclick="importDetectedSongs()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-black py-3.5 rounded-xl text-center shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> これらを一括追加 & インポートする
+                </button>
+            </div>
+
+            <!-- バックアップ・データ管理 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-database text-violet-400"></i> UtaLog バックアップ
+                </h3>
+                <p class="text-xs text-slate-400">
+                    スマホの乗り換え時やブラウザキャッシュ削除に備え、登録した曲情報・難易度・評価などの全データをiCloudにバックアップとして保存・復元できます。
+                </p>
+                <div class="grid grid-cols-2 gap-3.5 pt-1">
+                    <button onclick="exportBackupData()" class="bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 transition">
+                        <i class="fa-solid fa-download text-xs text-violet-400"></i> バックアップ出力
+                    </button>
+                    <label class="bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition text-center">
+                        <i class="fa-solid fa-upload text-xs text-fuchsia-400"></i> バックアップ読込
+                        <input type="file" accept=".json" onchange="importBackupData(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- 楽曲データ一括初期化 -->
+            <div class="bg-rose-950/20 border border-rose-900/30 rounded-2xl p-4 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i> UtaLog データ一括全削除
+                </h3>
+                <p class="text-xs text-slate-400">
+                    現在登録されているすべての楽曲データを消去します。
+                </p>
+                <button onclick="deleteAllSongs()" class="w-full bg-rose-900/40 hover:bg-rose-900 text-rose-200 border border-rose-800 hover:border-rose-700 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-trash-can"></i> 全楽曲データを一括削除
+                </button>
+            </div>
+            
+            <!-- 開発デバッグ用：一括サンプル曲追加 -->
+            <div class="bg-slate-900/40 border border-slate-800/40 rounded-2xl p-4 flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <p class="text-xs font-bold text-slate-300">デモ用のサンプル曲を追加する</p>
+                    <p class="text-xs text-slate-500">初めて使う際のテスト用サンプル曲3曲を生成します。</p>
+                </div>
+                <button onclick="loadSampleSongs()" class="text-violet-400 hover:text-violet-300 text-xs font-bold border border-violet-500/20 hover:border-violet-500/40 bg-violet-500/5 px-3.5 py-2 rounded-xl transition">
+                    生成
+                </button>
+            </div>
         </div>
 
         <!-- 1. 歌唱リストタブ -->
-        <div id="tab-songs" class="tab-pane space-y-4">
+        <div id="tab-songs" class="tab-pane hidden space-y-4">
             <!-- 検索 & フィルターバー -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl">
                 <!-- 検索窓 -->
@@ -281,161 +454,6 @@
                 <div id="custom-playlists-container" class="space-y-3">
                     <!-- カスタムプレイリストがここにレンダリングされます -->
                 </div>
-            </div>
-        </div>
-
-        <!-- 3. iCloud・スプレッドシート・同期タブ -->
-        <div id="tab-sync" class="tab-pane hidden space-y-4">
-            
-            <!-- スプレッドシート不要：1タップクリップボード同期 (新設：ユーザー体験の極上簡易化) -->
-            <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 opacity-15 translate-x-3 translate-y-3">
-                    <img src="006.png" class="w-24 h-24 object-contain rounded-full">
-                </div>
-                <div class="flex items-center space-x-2 text-emerald-400">
-                    <i class="fa-solid fa-clipboard-check text-base animate-pulse"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">📋 クリップボードから300曲一発登録</h3>
-                </div>
-                
-                <p class="text-xs text-slate-400 leading-relaxed pr-12">
-                    スプレッドシートの作成すら不要です！iPhoneの「ファイル」アプリでフォルダ内の全ファイルをコピーし、下のボタンを押すだけで一瞬で同期完了します。
-                </p>
-
-                <div class="space-y-3 text-xs bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-slate-300 leading-relaxed">
-                    <p class="font-bold text-emerald-400"><i class="fa-solid fa-mobile-screen-button"></i> iPhoneファイルアプリでの操作手順</p>
-                    <p class="mt-1">
-                        1. iOS標準の<strong>「ファイル」アプリ</strong>で、WAVフォルダを開きます。<br>
-                        2. 右上の「三点リーダー(…)」から「選択」をタップ ➔ 左上の<strong>「すべて選択」</strong>を押します。<br>
-                        3. 画面下の共有メニューから<strong>「コピー」</strong>を選択します。<br>
-                        4. UtaLogに戻り、下のボタンを押して「ペースト」を許可してください！ファイル名からAI自動解析が始まります。
-                    </p>
-                </div>
-
-                <div class="space-y-3">
-                    <button onclick="readFromClipboardAndParse()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-sm font-black py-4 rounded-xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-paste"></i> クリップボードから300曲一発登録 📋
-                    </button>
-                    <p class="text-[10px] text-slate-500 text-center">※ブラウザからクリップボードの読み取り許可ダイアログが出た場合は「許可」を押してください。</p>
-                </div>
-            </div>
-
-            <!-- 音声ファイルのストリーミング配信設定 -->
-            <div class="bg-slate-900 border border-violet-500/20 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
-                <div class="flex items-center space-x-2 text-violet-400">
-                    <i class="fa-solid fa-link text-base"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">再生ストリーミングベースURL設定</h3>
-                </div>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Googleドライブの公開共有フォルダ内のWAVをストリーミング再生するために、ご自身のフォルダURLをここに登録してください。（自動で直リンク配信用URLへと変換されます）
-                </p>
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
-                        Google ドライブ共有フォルダアドレス
-                    </label>
-                    <input type="url" id="cloud-base-url-input" oninput="saveCloudBaseUrl()" placeholder="例: https://drive.google.com/drive/folders/your-folder-id" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none transition font-medium">
-                    <p id="cloud-convert-feedback" class="text-[10px] text-indigo-400 mt-1 font-bold hidden"><i class="fa-solid fa-circle-check"></i> 音声ストリーミング用直リンクへ自動変換しました！</p>
-                </div>
-            </div>
-
-            <!-- スプレッドシート連携（予備） -->
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden">
-                <div class="flex items-center space-x-2 text-slate-400">
-                    <i class="fa-solid fa-table text-base"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">予備：Googleスプレッドシート同期</h3>
-                </div>
-                <div class="space-y-3.5">
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
-                            公開したスプレッドシートCSVアドレス
-                        </label>
-                        <input type="url" id="sheet-csv-url" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none transition font-medium">
-                    </div>
-
-                    <button onclick="syncWithGoogleSheetCSV()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrows-spin animate-spin-slow"></i> 予備：スプレッドシートからCSV同期 🔄
-                    </button>
-                </div>
-            </div>
-
-            <!-- 予備：テキスト一括インポーター -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-                <div class="flex items-center space-x-2 text-slate-400">
-                    <i class="fa-solid fa-paste text-base"></i>
-                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-100">予備：ファイル名リストを貼り付け一括追加</h3>
-                </div>
-                <div class="space-y-3">
-                    <textarea id="bulk-filenames-input" rows="4" placeholder="例:&#10;Vaundy_怪獣の花唄_take1.wav&#10;YOASOBI_アイドル_v2.wav&#10;あいみょん_マリーゴールド_master.wav" class="w-full bg-slate-950 border border-slate-800 focus:border-violet-500 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none font-mono resize-none"></textarea>
-                    
-                    <button onclick="parseAndImportTextFiles()" class="w-full bg-slate-805 hover:bg-slate-800 text-slate-200 text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> コピペリストからパースして認識
-                    </button>
-                </div>
-            </div>
-
-            <!-- 新規追加候補インポーター -->
-            <div id="new-songs-detected-box" class="hidden bg-slate-900 border border-amber-500/30 rounded-2xl p-4 space-y-3.5 shadow-xl relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 text-amber-400">
-                        <i class="fa-solid fa-circle-exclamation text-base animate-pulse"></i>
-                        <h3 class="text-sm font-black uppercase tracking-wider">未登録の新曲を検出！</h3>
-                    </div>
-                    <span id="detected-count-badge" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-black px-3 py-1 rounded-full">0曲</span>
-                </div>
-                <p class="text-xs text-slate-400">
-                    ファイル名からパースされた以下の曲をインポートします。AI調査が有効な場合、各曲の最高音、ジャンル、難易度アドバイスが自動登録されます！
-                </p>
-                <div id="detected-songs-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar border-y border-slate-800 py-2.5">
-                    <!-- 検知された曲のプレビュー -->
-                </div>
-
-                <div class="flex items-center justify-between border-b border-slate-900 pb-2.5">
-                    <div class="space-y-0.5">
-                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1">
-                            <i class="fa-solid fa-robot text-violet-400 animate-pulse"></i> AI最高音・ジャンル自動調査
-                        </span>
-                        <p class="text-[9px] text-slate-500">インポート後、GeminiがWebから裏でこっそり自動登録します</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="ai-lookup-toggle" checked class="sr-only peer">
-                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-600"></div>
-                    </label>
-                </div>
-
-                <button onclick="importDetectedSongs()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-black py-3.5 rounded-xl text-center shadow-lg transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> これらを一括追加 & インポートする
-                </button>
-            </div>
-
-            <!-- バックアップ・データ管理 -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-database text-violet-400"></i> UtaLog バックアップ
-                </h3>
-                <p class="text-xs text-slate-400">
-                    スマホの乗り換え時やブラウザキャッシュ削除に備え、登録した曲情報・難易度・評価などの全データをiCloudにバックアップとして保存・復元できます。
-                </p>
-                <div class="grid grid-cols-2 gap-3.5 pt-1">
-                    <button onclick="exportBackupData()" class="bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 transition">
-                        <i class="fa-solid fa-download text-xs text-violet-400"></i> バックアップ出力
-                    </button>
-                    <label class="bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition text-center">
-                        <i class="fa-solid fa-upload text-xs text-fuchsia-400"></i> バックアップ読込
-                        <input type="file" accept=".json" onchange="importBackupData(event)" class="hidden">
-                    </label>
-                </div>
-            </div>
-
-            <!-- 楽曲データ一括初期化 -->
-            <div class="bg-rose-950/20 border border-rose-900/30 rounded-2xl p-4 space-y-3 shadow-xl">
-                <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-triangle-exclamation"></i> UtaLog データ一括全削除
-                </h3>
-                <p class="text-xs text-slate-400">
-                    現在登録されているすべての楽曲データ（300曲強の全リスト）とカスタムプレイリストを完全に消去します。この操作は取り消せません。
-                </p>
-                <button onclick="deleteAllSongs()" class="w-full bg-rose-900/40 hover:bg-rose-900 text-rose-200 border border-rose-800 hover:border-rose-700 text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-1.5 transition">
-                    <i class="fa-solid fa-trash-can"></i> 全楽曲データを一括削除
-                </button>
             </div>
         </div>
     </main>
@@ -800,6 +818,10 @@
             initIndexedDb();
 
             updateCategoryFilterOptions();
+            
+            // 初期タブを「同期」に設定しフォルダ同期の利便性を最大化
+            switchTab('sync');
+            
             renderSongsList();
             renderPlaylists();
             updateDashboardCounters();
@@ -924,7 +946,7 @@
             syncSuccess: "同期完了！クラウドの音源や本体保存されたお気に入りWAVは、いつでもすぐに試聴できますよ！",
             playlistMode: "プレイリストモード突入！「最新15曲」は追加が新しい順に自動でノンストップ再生します！",
             recordingDone: "録音完了のステータスがついた曲は自信作ですね！どんどん蓄積していきましょう！",
-            syncRequest: "WAVファイルを安全・確実にマッピングするために「スプレッドシート・同期」タブを覗いてみてくださいね！",
+            syncRequest: "WAVファイルを安全・確実にマッピングするために「iCloud・クラウド同期」タブを覗いてみてくださいね！",
             emptyList: "まだ曲が登録されていません。まずは下の「デモ曲を生成」するか、自分で右上の「新規追加」を押してみましょう！",
             noResult: "うーん、該当する曲が見つかりませんでした。条件を変えて検索してみましょう！",
             musicMatched: "おっ、その曲と音域が似ていて歌いやすい他の曲をマッチングして絞り込みましたよ！",
@@ -1025,19 +1047,20 @@
             const hasFiles = Object.keys(mappedFiles).length > 0;
 
             if (hasFiles) {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-                text.innerText = `${Object.keys(mappedFiles).length}曲 同期中`;
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                if (text) text.innerText = `${Object.keys(mappedFiles).length}曲 同期中`;
             } else if (cloudBaseUrl !== "") {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse";
-                text.innerText = `Cloud 連携中`;
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse";
+                if (text) text.innerText = `Cloud 連携中`;
             } else {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse";
-                text.innerText = "未同期";
+                if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse";
+                if (text) text.innerText = "未同期";
             }
         }
 
         function updateDashboardCounters() {
-            document.getElementById('song-count-badge').innerText = `全 ${songs.length} 曲`;
+            const songBadge = document.getElementById('song-count-badge');
+            if (songBadge) songBadge.innerText = `全 ${songs.length} 曲`;
         }
 
         function updateCategoryFilterOptions() {
@@ -1113,7 +1136,7 @@
                         <img src="010.png" class="w-28 h-28 mx-auto object-contain rounded-full opacity-80">
                         <div class="space-y-1.5">
                             <p class="text-sm font-black text-slate-400">該当する曲が見つかりません</p>
-                            <p class="text-xs text-slate-600 font-bold">「スプレッドシート・同期」タブから同期させるか、条件をクリアしてみてください！</p>
+                            <p class="text-xs text-slate-600 font-bold">「フォルダ同期」タブからWAVファイルを読み込ませるか、コピーしたリストをペーストしてみてください！</p>
                         </div>
                     </div>
                 `;
@@ -1999,7 +2022,7 @@
             playCurrentSong();
         }
 
-        // --- 新設：Google スプレッドシート CSV 直連携スキャン ---
+        // --- Google スプレッドシート CSV 直連携スキャン ---
         async function syncWithGoogleSheetCSV() {
             const sheetUrl = document.getElementById('sheet-csv-url').value.trim();
             if (!sheetUrl) {
@@ -2250,15 +2273,16 @@
         }
 
 
-        // --- iCloud一括フォルダ同期 (直接ファイル選択) ---
+        // --- iCloud/フォルダ一括同期 (直接WAVファイルをドラッグ＆ドロップまたはピッカーでマッピング＆自動新規マージ) ---
         function syncWithiCloudFolder(event) {
             const files = event.target.files;
-            if (files.length === 0) return;
+            if (!files || files.length === 0) return;
 
             let mappedCount = 0;
             let emptyFilesCount = 0;
             detectedNewSongs = [];
 
+            // すべてのファイルをメモリにバインド
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (file.size === 0) {
@@ -2267,11 +2291,13 @@
 
                 mappedFiles[file.name] = file;
 
+                // 既にデータベース内に同じファイル名があるかチェック
                 const matchedSong = songs.find(s => s.fileName === file.name || file.name.includes(s.title));
                 if (matchedSong) {
                     matchedSong.fileName = file.name;
                     mappedCount++;
                 } else {
+                    // 新規の曲と見なして自動マージ候補にセット
                     const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
                     let estimatedArtist = "自主歌唱録音";
                     let estimatedTitle = rawName;
@@ -2313,6 +2339,7 @@
                 showToast(`${mappedCount}曲の既存WAVと接続に成功！`, "fa-wand-magic-sparkles", "text-violet-400", "006.png");
             }
 
+            // 新しく検知された楽曲があれば自動マージインポーターを表示
             const newSongsBox = document.getElementById('new-songs-detected-box');
             if (detectedNewSongs.length > 0) {
                 if (newSongsBox) newSongsBox.classList.remove('hidden');
@@ -2330,7 +2357,7 @@
                             <div class="truncate pr-2 flex-1">
                                 <span class="text-violet-400 font-bold">${index + 1}.</span>
                                 <span class="text-slate-200 font-medium">${ns.title}</span>
-                                <span class="text-slate-400 text-[10px] ml-1.5">by ${ns.artist}</span>
+                                <span class="text-slate-400 text-[10px] ml-1.5 font-bold">by ${ns.artist}</span>
                             </div>
                         `;
                         listContainer.appendChild(row);
