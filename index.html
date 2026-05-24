@@ -182,12 +182,11 @@
 
         // ==========================================
         // IndexedDB 設定 (データのローカル永続化)
-        // fileBlobフィールドを追加し実音源キャッシュを可能に
         // ==========================================
-        const DB_NAME = 'VocalArchiveDB_v4'; // バージョンアップ
+        const DB_NAME = 'VocalArchiveDB_v4'; 
         const STORE_SONGS = 'songs_metadata';
         const STORE_PLAYLISTS = 'playlists';
-        const STORE_SETTINGS = 'app_settings'; // 各種アプリ設定(クラウドURLなど)
+        const STORE_SETTINGS = 'app_settings'; 
 
         const initDB = () => {
           return new Promise((resolve, reject) => {
@@ -276,7 +275,7 @@
         // ==========================================
         function App() {
           const [songs, setSongs] = useState([]);
-          const [fileMap, setFileMap] = useState(new Map()); // filename -> File/Blob オブジェクト (メモリ内)
+          const [fileMap, setFileMap] = useState(new Map()); 
           const [playlists, setPlaylists] = useState([]);
           const [currentPlaylist, setCurrentPlaylist] = useState('all'); 
           const [activeTab, setActiveTab] = useState('library');
@@ -304,8 +303,8 @@
 
           // アプリ設定情報ステート (ベースURL、ファイル自動永続化等)
           const [settings, setSettings] = useState({
-            cloudBaseUrl: '', // 例: https://raw.githubusercontent.com/sakuraz0079/uta/main/songs/
-            autoLocalCache: true // ファイル登録時に自動的にIndexedDBに実データを保存
+            cloudBaseUrl: '', 
+            autoLocalCache: true 
           });
 
           // 手動データ入力用ステート
@@ -518,7 +517,7 @@
           };
 
           // ==========================================
-          // 改修：スマホ用軽量ファイル同期 ＆ IndexedDB実ファイルキャッシュ
+          // スマホ用軽量ファイル同期 ＆ IndexedDB実ファイルキャッシュ（安全に例外監視）
           // ==========================================
           const handleMultipleFilesSelect = async (e) => {
             const files = Array.from(e.target.files);
@@ -535,57 +534,62 @@
               const filename = file.name;
               newFileMap.set(filename, file); // メモリマウント
 
-              // すでに曲情報が存在する場合：実音源Blobを上書きキャッシュ保存
-              if (existingSongsMap.has(filename)) {
-                const existing = existingSongsMap.get(filename);
-                const updatedRecord = { ...existing };
-                if (settings.autoLocalCache) {
-                  updatedRecord.fileBlob = file; // IndexedDB内に実ファイルを保存
-                }
-                await saveToDB(STORE_SONGS, updatedRecord);
-              } else {
-                // 新規登録曲
-                const cleanName = filename.substring(0, filename.lastIndexOf('.'));
-                const parts = cleanName.split('_');
-                
-                let artist = '不明なアーティスト';
-                let title = cleanName;
-                let version = '通常音源';
-
-                if (parts.length >= 2) {
-                  artist = parts[0].trim();
-                  title = parts[1].trim();
-                  if (parts.length >= 3) {
-                    version = parts.slice(2).join('_').trim();
+              try {
+                // すでに曲情報が存在する場合：実音源Blobを上書きキャッシュ保存
+                if (existingSongsMap.has(filename)) {
+                  const existing = existingSongsMap.get(filename);
+                  const updatedRecord = { ...existing };
+                  if (settings.autoLocalCache) {
+                    updatedRecord.fileBlob = file; // IndexedDB内に実ファイルを保存
                   }
+                  await saveToDB(STORE_SONGS, updatedRecord);
+                } else {
+                  // 新規登録曲
+                  const cleanName = filename.substring(0, filename.lastIndexOf('.'));
+                  const parts = cleanName.split('_');
+                  
+                  let artist = '不明なアーティスト';
+                  let title = cleanName;
+                  let version = '通常音源';
+
+                  if (parts.length >= 2) {
+                    artist = parts[0].trim();
+                    title = parts[1].trim();
+                    if (parts.length >= 3) {
+                      version = parts.slice(2).join('_').trim();
+                    }
+                  }
+
+                  const newSong = {
+                    filename,
+                    artist,
+                    title,
+                    version,
+                    highestChest: '未設定', 
+                    highestFalsetto: '未設定', 
+                    rating: 3, 
+                    comments: '',
+                    dateAdded: new Date().toISOString()
+                  };
+
+                  if (settings.autoLocalCache) {
+                    newSong.fileBlob = file; // IndexedDB内に実ファイルを保存
+                  }
+
+                  updatedSongs.push(newSong);
+                  await saveToDB(STORE_SONGS, newSong);
+                  analyzeSongBackground(newSong);
                 }
-
-                const newSong = {
-                  filename,
-                  artist,
-                  title,
-                  version,
-                  highestChest: '未設定', 
-                  highestFalsetto: '未設定', 
-                  rating: 3, 
-                  comments: '',
-                  dateAdded: new Date().toISOString()
-                };
-
-                if (settings.autoLocalCache) {
-                  newSong.fileBlob = file; // IndexedDB内に実ファイルを保存
-                }
-
-                updatedSongs.push(newSong);
-                await saveToDB(STORE_SONGS, newSong);
-                analyzeSongBackground(newSong);
+              } catch (storageError) {
+                // 容量オーバーなどでキャッシュ保存に失敗した場合も、エラーで停止させずメモリ再生できるようにフォールバック
+                console.warn("DBキャッシュ書き込み制限またはクォータ上限に達しました。メモリ再生としてマウントします:", storageError);
               }
             }
 
             setFileMap(newFileMap);
             setSongs(updatedSongs);
             setIsSyncing(false);
-            showStatus(`${files.length}曲の音源同期＆ブラウザキャッシュ保存が完了しました！`, 'success');
+            showStatus(`${files.length}曲の音源を同期しました！(空き容量不足時はメモリ一時ロード)`, 'success');
             setActiveTab('library');
           };
 
@@ -693,9 +697,7 @@
             setActiveTab('library');
           };
 
-          // ==========================================
-          // 復元した最新15曲算出処理 (エラー修正箇所)
-          // ==========================================
+          // 最新15曲算出処理
           const latest15Songs = useMemo(() => {
             return [...songs]
               .filter(s => !s.isDemo)
@@ -737,15 +739,13 @@
             e.stopPropagation();
             const record = await getFromDB(STORE_SONGS, song.filename);
             if (record) {
-              delete record.fileBlob; // Blobキャッシュのみ消去
+              delete record.fileBlob; 
               await saveToDB(STORE_SONGS, record);
               
-              // メモリからも消去
               const newFileMap = new Map(fileMap);
               newFileMap.delete(song.filename);
               setFileMap(newFileMap);
 
-              // 状態更新
               setSongs(prev => prev.map(s => s.filename === song.filename ? { ...s, fileBlob: undefined } : s));
               if (currentSong?.filename === song.filename) {
                 setCurrentSong(prev => ({ ...prev, fileBlob: undefined }));
@@ -771,9 +771,7 @@
             showStatus("すべての音声キャッシュをクリアしました", "info");
           };
 
-          // ==========================================
-          // 再生制御コア ＆ クラウド自動取得（フェッチ）
-          // ==========================================
+          // 再生制御コア ＆ クラウド自動取得
           const playSong = async (song) => {
             if (song.isDemo) {
               const demoUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
@@ -794,11 +792,10 @@
 
             let file = fileMap.get(song.filename);
             
-            // A. メモリやIndexedDBにファイルキャッシュがない場合、クラウドから自動取得（自動ダウンロード）を試みる
+            // クラウドから自動取得（自動ダウンロード）を試みる
             if (!file && settings.cloudBaseUrl) {
               showStatus("クラウドから音源を自動ロード中...", "info");
               try {
-                // クラウドベースURLの末尾スラッシュ補正
                 let base = settings.cloudBaseUrl;
                 if (!base.endsWith('/')) base += '/';
 
@@ -808,36 +805,36 @@
                 if (!response.ok) throw new Error("クラウド音源の取得に失敗しました");
                 const audioBlob = await response.blob();
                 
-                // フェッチに成功：メモリマップに登録
                 file = new File([audioBlob], song.filename, { type: audioBlob.type });
                 const newFileMap = new Map(fileMap);
                 newFileMap.set(song.filename, file);
                 setFileMap(newFileMap);
 
-                // 自動キャッシュ保存がONならIndexedDBにも永続保存
                 if (settings.autoLocalCache) {
-                  const record = await getFromDB(STORE_SONGS, song.filename);
-                  if (record) {
-                    record.fileBlob = file;
-                    await saveToDB(STORE_SONGS, record);
-                    setSongs(prev => prev.map(s => s.filename === song.filename ? { ...s, fileBlob: file } : s));
+                  try {
+                    const record = await getFromDB(STORE_SONGS, song.filename);
+                    if (record) {
+                      record.fileBlob = file;
+                      await saveToDB(STORE_SONGS, record);
+                      setSongs(prev => prev.map(s => s.filename === song.filename ? { ...s, fileBlob: file } : s));
+                    }
+                  } catch (e) {
+                    console.warn("クラウドデータのDB書き込み制限エラー(メモリ上にのみ保持します):", e);
                   }
                 }
                 showStatus("クラウド音源の自動同期に成功！", "success");
               } catch (err) {
                 console.error("Cloud Fetch Error:", err);
-                showStatus("クラウドからの自動フェッチに失敗しました。ファイルが公開されているか設定を確認してください。", "error");
+                showStatus("クラウドからの自動フェッチに失敗しました。ファイル名やURL設定を確認してください。", "error");
               }
             }
 
-            // B. それでもファイルが存在しない場合は、個別紐付けを要求
             if (!file) {
               setUnresolvedSong(song);
               setMascotMood('angry');
               return;
             }
 
-            // C. ファイルが準備できたのでBlob展開して再生開始
             const url = URL.createObjectURL(file);
             if (audioRef.current) {
               if (audioRef.current.src && audioRef.current.src.startsWith('blob:')) {
@@ -873,12 +870,15 @@
             newFileMap.set(unresolvedSong.filename, file);
             setFileMap(newFileMap);
 
-            // IndexedDBにも保存
-            const record = await getFromDB(STORE_SONGS, unresolvedSong.filename);
-            if (record) {
-              record.fileBlob = file;
-              await saveToDB(STORE_SONGS, record);
-              setSongs(prev => prev.map(s => s.filename === unresolvedSong.filename ? { ...s, fileBlob: file } : s));
+            try {
+              const record = await getFromDB(STORE_SONGS, unresolvedSong.filename);
+              if (record) {
+                record.fileBlob = file;
+                await saveToDB(STORE_SONGS, record);
+                setSongs(prev => prev.map(s => s.filename === unresolvedSong.filename ? { ...s, fileBlob: file } : s));
+              }
+            } catch (err) {
+              console.warn("DB個別キャッシュの保存容量上限制限:", err);
             }
 
             const targetSong = unresolvedSong;
@@ -958,6 +958,104 @@
             animateWave();
           };
 
+          const animateWave = () => {
+            if (!canvasRef.current) return;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            let volumeMultiplier = 0;
+            if (analyserRef.current && isPlaying) {
+              const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+              analyserRef.current.getByteFrequencyData(dataArray);
+              const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+              volumeMultiplier = avg / 255;
+            }
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.strokeStyle = 'rgba(244, 63, 94, 0.03)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < width; i += 30) {
+              ctx.beginPath();
+              ctx.moveTo(i, 0);
+              ctx.lineTo(i, height);
+              ctx.stroke();
+            }
+
+            const progress = duration > 0 ? currentTime / duration : 0;
+            const currentBarIndex = Math.floor(progress * waveformPeaks.length);
+
+            if (waveformPeaks.length > 0) {
+              const barWidth = width / waveformPeaks.length;
+              const centerY = height / 2;
+
+              waveformPeaks.forEach((peak, i) => {
+                const x = i * barWidth;
+                const active = i <= currentBarIndex;
+                
+                const bounce = active && isPlaying ? 1.0 + (volumeMultiplier * 0.45) : 1.0;
+                const barHeight = peak * (height * 0.75) * bounce;
+                const topY = centerY - barHeight / 2;
+
+                ctx.beginPath();
+                if (active) {
+                  const gradient = ctx.createLinearGradient(x, topY, x, topY + barHeight);
+                  gradient.addColorStop(0, '#f43f5e'); 
+                  gradient.addColorStop(1, '#db2777'); 
+                  ctx.fillStyle = gradient;
+                } else {
+                  ctx.fillStyle = 'rgba(244, 63, 94, 0.16)'; 
+                }
+
+                const radius = Math.max(1, barWidth / 2 - 0.5);
+                if (ctx.roundRect) {
+                  ctx.roundRect(x + 1, topY, barWidth - 1.5, barHeight, radius);
+                } else {
+                  ctx.rect(x + 1, topY, barWidth - 1.5, barHeight);
+                }
+                ctx.fill();
+              });
+
+              const cursorX = progress * width;
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = '#f43f5e';
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.moveTo(cursorX, 0);
+              ctx.lineTo(cursorX, height);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+            } else {
+              ctx.fillStyle = 'rgba(244, 63, 94, 0.5)';
+              ctx.font = '13px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText('再生すると波形が表示されます', width / 2, height / 2 + 4);
+            }
+
+            animationFrameRef.current = requestAnimationFrame(animateWave);
+          };
+
+          const handleWaveformClick = (e) => {
+            if (!audioRef.current || !canvasRef.current || duration === 0) return;
+            const rect = canvasRef.current.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const ratio = clickX / rect.width;
+            const nextTime = ratio * duration;
+            audioRef.current.currentTime = nextTime;
+            setCurrentTime(nextTime);
+          };
+
+          const handleTimeUpdate = () => {
+            if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+          };
+
+          const handleLoadedMetadata = () => {
+            if (audioRef.current) setDuration(audioRef.current.duration);
+          };
+
           const handleVolumeChange = (e) => {
             const val = parseFloat(e.target.value);
             setVolume(val);
@@ -981,11 +1079,10 @@
           const saveSongMetadata = async () => {
             if (!editingSong) return;
             try {
-              // 実ファイルキャッシュを含む可能性のある既存レコードをIndexedDBから取得してマージ
               const existing = await getFromDB(STORE_SONGS, editingSong.filename);
               const dataToSave = { ...editingSong };
               if (existing && existing.fileBlob) {
-                dataToSave.fileBlob = existing.fileBlob; // 実ファイルBlobを維持して保存
+                dataToSave.fileBlob = existing.fileBlob; 
               }
               await saveToDB(STORE_SONGS, dataToSave);
               setSongs(songs.map(s => s.filename === editingSong.filename ? dataToSave : s));
@@ -1044,7 +1141,6 @@
           };
 
           const exportDatabase = () => {
-            // エクスポート時は実音源Blobを除いてテキストデータのみ軽量出力する
             const lightSongs = songs.map(s => {
               const copy = { ...s };
               delete copy.fileBlob;
@@ -1069,7 +1165,7 @@
                   for (const s of parsed.songs) {
                     const existing = await getFromDB(STORE_SONGS, s.filename);
                     if (existing && existing.fileBlob) {
-                      s.fileBlob = existing.fileBlob; // 既存キャッシュがあれば引き継ぐ
+                      s.fileBlob = existing.fileBlob; 
                     }
                     await saveToDB(STORE_SONGS, s);
                   }
@@ -1099,8 +1195,8 @@
           };
 
           return (
-            /* 動的100vhに固定、外枠のスクロールを完全に禁止 */
-            <div className="h-[100dvh] flex flex-col justify-between bg-neutral-950 text-neutral-100 font-sans overflow-hidden select-none">
+            /* 絶対位置 fixed inset-0 により、スマホの上下バー伸縮に伴う表示ちぎれとはみ出しを完全防御 */
+            <div className="fixed inset-0 h-[100dvh] flex flex-col justify-between bg-neutral-950 text-neutral-100 font-sans overflow-hidden select-none">
               
               <audio 
                 ref={audioRef}
@@ -1712,7 +1808,6 @@
                       </div>
 
                       <div className="space-y-2 pt-2">
-                        {/* クラウドURLを設定していない場合は案内を表示 */}
                         {!settings.cloudBaseUrl && (
                           <p className="text-[10px] text-rose-300 leading-relaxed bg-rose-950/30 p-2 rounded-xl border border-rose-900/30">
                             ※「登録 / 同期」タブからクラウド配信ベースURLを設定しておくと、この画面を出さずに自動フェッチ再生が可能です。
@@ -1859,7 +1954,7 @@
                                   hasSong 
                                     ? 'bg-rose-950/60 text-rose-300 border-rose-500/50' 
                                     : 'bg-neutral-950 text-neutral-500 border-neutral-850'
-                                }` parentComponent}
+                                }`}
                               >
                                 {pl.name}
                                 {hasSong && <SvgIcon name="check" className="w-3 h-3" />}
@@ -1981,7 +2076,7 @@
 
                     <div className="p-3 bg-neutral-950 border-t border-neutral-850 text-center">
                       <button 
-                        onClick={() => setIsInfoModalOpen(true && setIsInfoModalOpen(false))}
+                        onClick={() => setIsInfoModalOpen(false)}
                         className="px-5 py-2 bg-rose-500 text-neutral-950 rounded-xl text-xs font-black transition-all"
                       >
                         理解しました！
