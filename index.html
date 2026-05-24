@@ -41,6 +41,17 @@
             -webkit-overflow-scrolling: touch;
         }
     </style>
+    
+    <!-- スマホ用JavaScriptエラー検知デバッガー -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const errDiv = document.createElement('div');
+            errDiv.style = 'position:fixed;top:0;left:0;width:100%;background:#880000;color:#fff;padding:12px;z-index:99999;font-family:monospace;font-size:11px;white-space:pre-wrap;box-shadow:0 4px 10px rgba(0,0,0,0.5);border-bottom:2px solid #ff0055;';
+            errDiv.innerText = '⚠️ エラー検知 (お手数ですが、下記を開発者にお知らせください):\n' + message + '\n\n場所: ' + source + ' (行: ' + lineno + ' / 列: ' + colno + ')';
+            document.body.appendChild(errDiv);
+            return false;
+        };
+    </script>
 </head>
 <body class="text-neutral-100 overflow-hidden">
 
@@ -984,7 +995,11 @@
               ctx.stroke();
             }
 
-            const progress = duration > 0 ? currentTime / duration : 0;
+            // クロージャーバグを解決するため、実オーディオノードの時間を1ミリ秒単位で完全に直読み
+            const audioEl = audioRef.current;
+            const curTime = audioEl ? audioEl.currentTime : 0;
+            const dur = audioEl ? audioEl.duration : 0;
+            const progress = dur > 0 ? curTime / dur : 0;
             const currentBarIndex = Math.floor(progress * waveformPeaks.length);
 
             if (waveformPeaks.length > 0) {
@@ -1010,6 +1025,7 @@
                 }
 
                 const radius = Math.max(1, barWidth / 2 - 0.5);
+                // roundRectの非対応デバイス向け安全なフォールバック
                 if (ctx.roundRect) {
                   ctx.roundRect(x + 1, topY, barWidth - 1.5, barHeight, radius);
                 } else {
