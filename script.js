@@ -1,32 +1,53 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTA-ARCHIVE MOBILE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 min-h-screen">
-    
-    <div class="max-w-md mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">UTA-ARCHIVE</h1>
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('fileInput');
+    const songListContainer = document.getElementById('songList');
+
+    // ファイル選択イベントのリスナー
+    fileInput.addEventListener('change', (event) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            renderSongs(files);
+        }
+    });
+
+    /**
+     * 選択されたファイルを解析・表示する関数
+     * @param {FileList} files 
+     */
+    function renderSongs(files) {
+        songListContainer.innerHTML = ''; // リストを一度クリア
         
-        <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">楽曲ファイルを選択 (WAV可)</label>
-            <!-- accept属性を削除して制限を撤廃 -->
-            <input type="file" id="fileInput" multiple 
-                   class="block w-full text-sm text-gray-500 
-                          file:mr-4 file:py-2 file:px-4 
-                          file:rounded-full file:border-0 
-                          file:bg-blue-500 file:text-white 
-                          hover:file:bg-blue-600 transition-colors">
-        </div>
+        let foundWav = false;
+        Array.from(files).forEach((file) => {
+            // .wavファイルのみを対象に処理
+            if (!file.name.toLowerCase().endsWith('.wav')) return;
+            foundWav = true;
 
-        <div id="songList" class="space-y-4">
-            <p class="text-center text-gray-500">ファイルを選択するとここにリストが表示されます</p>
-        </div>
-    </div>
+            // ローカルファイル再生用のURL生成
+            const objectUrl = URL.createObjectURL(file);
+            
+            // ファイル名解析: "アーティスト_曲名.wav" の形式を想定
+            const name = file.name.replace(/\.wav$/i, '');
+            const parts = name.split('_');
+            const artist = parts.length > 1 ? parts[0] : "不明";
+            const title = parts.length > 1 ? parts[1] : name;
 
-    <script src="script.js"></script>
-</body>
-</html>
+            // リスト項目の生成
+            const div = document.createElement('div');
+            div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-2';
+            div.innerHTML = `
+                <div class="mb-2">
+                    <h2 class="font-bold text-lg">${title}</h2>
+                    <p class="text-sm text-gray-500">${artist}</p>
+                </div>
+                <audio controls src="${objectUrl}" class="w-full h-10"></audio>
+            `;
+            songListContainer.appendChild(div);
+        });
+
+        // 該当ファイルがない場合の通知
+        if (!foundWav) {
+            songListContainer.innerHTML = '<p class="text-center text-red-500">選択したファイルの中に.wavが見つかりませんでした。</p>';
+        }
+    }
+});
