@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = parts[1] || filename;
             const version = parts.slice(2).join('_').replace('.wav', '') || "";
 
-            // Google Driveの再生用URL
-            const url = `https://drive.google.com/uc?export=open&id=${fileId}`;
+            // URL生成の修正: uc?id={id}&export=download に変更し、さらに直接アクセスを試みる形式
+            const url = `https://drive.google.com/uc?id=${fileId}&export=download`;
 
             const div = document.createElement('div');
             div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
@@ -41,8 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="font-bold text-lg">${title}</h2>
                     <p class="text-sm text-gray-600">${artist} ${version ? `(${version})` : ''}</p>
                 </div>
-                <!-- controlsに加えてpreloadを追加 -->
-                <audio controls preload="metadata" class="w-full h-10 mt-2">
+                <audio controls class="w-full h-10 mt-2">
                     <source src="${url}" type="audio/wav">
                     お使いのブラウザは再生に対応していません。
                 </audio>
