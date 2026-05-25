@@ -41,9 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="font-bold text-lg">${title}</h2>
                     <p class="text-sm text-gray-600">${artist} ${version ? `(${version})` : ''}</p>
                 </div>
-                <!-- type指定を外し、ブラウザが自動判定するように変更 -->
-                <audio controls preload="none" class="w-full h-10 mt-2">
-                    <source src="${url}">
+                <!-- crossOrigin属性を追加し、リソース取得の許可を試みます -->
+                <audio controls crossorigin="anonymous" class="w-full h-10 mt-2">
+                    <source src="${url}" type="audio/wav">
                     お使いのブラウザは再生に対応していません。
                 </audio>
             `;
