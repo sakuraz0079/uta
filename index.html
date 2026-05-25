@@ -77,7 +77,8 @@
         ];
 
         // ==========================================
-        // 軽量かつ完全ポータブルな SVGアイコンコンポーネント (サイズアップ版)
+        // 軽量かつ完全ポータブルな SVGアイコンコンポーネント (サイズアップ修正版)
+        // Tailwindに実在する標準サイズを割り当てて巨大化や消失を防ぎます
         // ==========================================
         const SvgIcon = ({ name, className = "w-6 h-6" }) => {
           const icons = {
@@ -1366,6 +1367,7 @@
 
               {/* ==========================================
                   ヘッダー直下のスマホ用上部ナビゲーション
+                  【巨大化バグ修正】アイコンサイズをw-5 h-5の実在クラスへ統合
                   ========================================== */}
               <nav className="flex-shrink-0 border-b border-neutral-900 bg-neutral-900/40 grid grid-cols-3 text-center z-30">
                 <button 
@@ -1374,7 +1376,7 @@
                     activeTab === 'player' ? 'text-rose-500 border-b-4 border-rose-500 bg-rose-950/10' : 'text-neutral-400'
                   }`}
                 >
-                  <SvgIcon name="music" className="w-5.5 h-5.5" />
+                  <SvgIcon name="music" className="w-5 h-5" />
                   <span>再生画面</span>
                 </button>
 
@@ -1384,7 +1386,7 @@
                     activeTab === 'library' ? 'text-rose-500 border-b-4 border-rose-500 bg-rose-950/10' : 'text-neutral-400'
                   }`}
                 >
-                  <SvgIcon name="listMusic" className="w-5.5 h-5.5" />
+                  <SvgIcon name="listMusic" className="w-5 h-5" />
                   <span>ライブラリ</span>
                 </button>
 
@@ -1394,7 +1396,7 @@
                     activeTab === 'input_data' ? 'text-rose-500 border-b-4 border-rose-500 bg-rose-950/10' : 'text-neutral-400'
                   }`}
                 >
-                  <SvgIcon name="folderOpen" className="w-5.5 h-5.5" />
+                  <SvgIcon name="folderOpen" className="w-5 h-5" />
                   <span>登録 / 同期</span>
                 </button>
               </nav>
@@ -1526,7 +1528,7 @@
                         onClick={() => setIsPlaylistModalOpen(true)}
                         className="px-3.5 py-2 rounded-full text-xs bg-neutral-900 text-neutral-500 border border-neutral-800 flex items-center gap-1 font-bold"
                       >
-                        <SvgIcon name="plus" className="w-4.5 h-4.5" /> 新規作成
+                        <SvgIcon name="plus" className="w-5 h-5" /> 新規作成
                       </button>
                     </div>
 
@@ -1618,7 +1620,7 @@
                                 }}
                                 className="p-2 text-neutral-400 hover:text-white"
                               >
-                                <SvgIcon name="edit3" className="w-5.5 h-5.5" />
+                                <SvgIcon name="edit3" className="w-5 h-5" />
                               </button>
                             </div>
 
@@ -1820,6 +1822,7 @@
 
               {/* ==========================================
                   最下部：常駐型ミニプレーヤー ＆ クイック再生
+                  【不具合修正箇所】w-5.5 / w-6.5 の非実在Tailwindクラスを w-5 / w-6 実在クラスへ全置換
                   ========================================== */}
               <div className="flex-shrink-0 border-t border-neutral-900 bg-neutral-950 p-3.5 space-y-3.5 z-40">
                 
@@ -1865,17 +1868,17 @@
                     )}
                   </div>
 
-                  {/* プレイヤー中心ボタン */}
+                  {/* プレイヤー中心ボタン (アイコンの消失を100%防止するため実在クラス w-5 h-5 / w-6 h-6 を厳格に適用) */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button 
                       onClick={() => setIsShuffle(!isShuffle)}
                       className={`p-2.5 rounded-lg active:scale-90 transition-all ${isShuffle ? 'text-rose-400 bg-rose-950/30' : 'text-neutral-500'}`}
                     >
-                      <SvgIcon name="shuffle" className="w-5.5 h-5.5" />
+                      <SvgIcon name="shuffle" className="w-5 h-5" />
                     </button>
                     
                     <button onClick={handlePrev} className="p-3 text-neutral-400 active:scale-90 transition-all">
-                      <SvgIcon name="skipBack" className="w-5.5 h-5.5" />
+                      <SvgIcon name="skipBack" className="w-5 h-5" />
                     </button>
                     
                     <button 
@@ -1887,21 +1890,21 @@
                       }`}
                     >
                       {isPlaying ? (
-                        <SvgIcon name="pause" className="w-6.5 h-6.5" />
+                        <SvgIcon name="pause" className="w-6 h-6" />
                       ) : (
-                        <SvgIcon name="play" className="w-6.5 h-6.5 ml-0.5" />
+                        <SvgIcon name="play" className="w-6 h-6 ml-0.5" />
                       )}
                     </button>
                     
                     <button onClick={handleNext} className="p-3 text-neutral-400 active:scale-90 transition-all">
-                      <SvgIcon name="skipForward" className="w-5.5 h-5.5" />
+                      <SvgIcon name="skipForward" className="w-5 h-5" />
                     </button>
 
                     <button 
                       onClick={() => setIsLooping(!isLooping)}
                       className={`p-2.5 rounded-lg active:scale-90 transition-all ${isLooping ? 'text-rose-400 bg-rose-950/30' : 'text-neutral-500'}`}
                     >
-                      <SvgIcon name="repeat" className="w-5.5 h-5.5" />
+                      <SvgIcon name="repeat" className="w-5 h-5" />
                     </button>
                   </div>
 
