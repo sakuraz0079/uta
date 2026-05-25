@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
-            console.log("読み込んだデータ:", data);
             allSongs = data;
             renderSongs(allSongs);
         })
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
             songListContainer.innerHTML = '<p class="text-center text-red-500">データの読み込みに失敗しました。</p>';
         });
 
-    // リストのレンダリング関数
     function renderSongs(songs) {
         if (songs.length === 0) {
             songListContainer.innerHTML = '<p class="text-center text-gray-500">該当する曲が見つかりませんでした。</p>';
@@ -25,17 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         songListContainer.innerHTML = '';
         songs.forEach(song => {
-            // data.jsonのキー名に合わせて取得
             const filename = song["ファイル名"] || "";
             const fileId = song["ファイルID"] || "";
             
-            // ファイル名からアーティスト名と曲名を分解 (アンダースコアで分割)
             const parts = filename.split('_');
             const artist = parts[0] || "不明";
             const title = parts[1] || filename;
             const version = parts.slice(2).join('_').replace('.wav', '') || "";
 
-            // Google Driveの再生用URLを作成
+            // Google Driveの再生用URL
             const url = `https://drive.google.com/uc?export=open&id=${fileId}`;
 
             const div = document.createElement('div');
@@ -45,7 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="font-bold text-lg">${title}</h2>
                     <p class="text-sm text-gray-600">${artist} ${version ? `(${version})` : ''}</p>
                 </div>
-                <audio controls class="w-full h-10 mt-2">
+                <!-- controlsに加えてpreloadを追加 -->
+                <audio controls preload="metadata" class="w-full h-10 mt-2">
                     <source src="${url}" type="audio/wav">
                     お使いのブラウザは再生に対応していません。
                 </audio>
@@ -54,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 検索機能
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const filtered = allSongs.filter(song => 
