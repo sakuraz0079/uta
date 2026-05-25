@@ -2,10 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
     const songListContainer = document.getElementById('songList');
 
-    // ページ読み込み時に保存されたリストを表示する試み
-    // 注意: URL.createObjectURLはリロードで期限切れになるため、
-    // 実際に再生するには再選択が必要になりますが、リストの表示までは保持可能です。
-    
+    // ページロード時に以前のファイル名リストがあれば通知する
+    const savedList = JSON.parse(localStorage.getItem('savedSongList') || '[]');
+    if (savedList.length > 0) {
+        songListContainer.innerHTML = `
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                <p>前回のリスト: ${savedList.length}曲</p>
+                <p class="mt-1">※ブラウザの仕様により、リロード後はもう一度「楽曲ファイルを選択」からファイルを選択し直してください。</p>
+            </div>
+        `;
+    }
+
     fileInput.addEventListener('change', (event) => {
         const files = event.target.files;
         if (files && files.length > 0) {
