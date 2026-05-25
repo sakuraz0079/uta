@@ -25,7 +25,18 @@
             <p class="text-center text-gray-500">楽曲データを読み込んでいます...</p>
         </div>
     </div>
+<!-- 追加：ファイル選択ボタン -->
+<div class="mb-6">
+    <input type="file" id="fileInput" multiple accept="audio/*" 
+           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600">
+</div>
 
+### この方式のメリット
+* **完全オフライン**: 通信環境がなくても再生可能。
+* **制限なし**: 100MB以上のファイルも問題なく再生可能。
+* **安全性**: プライバシーが保たれる（サーバーにファイルを送る必要がない）。
+
+これでGoogle Driveの壁を気にせず、思う存分レパートリーを管理できるようになります。まずは1ファイルだけ選択して再生できるか、試してみてください。
     <!-- type="module" を追加してJavaScriptモジュールとして読み込むように修正 -->
     <script src="script.js"></script>
 </body>
