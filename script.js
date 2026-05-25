@@ -12,21 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * 選択されたファイルを解析・表示する関数
-     * @param {FileList} files 
      */
     function renderSongs(files) {
-        songListContainer.innerHTML = ''; // リストを一度クリア
+        songListContainer.innerHTML = '';
         
         let foundWav = false;
         Array.from(files).forEach((file) => {
-            // .wavファイルのみを対象に処理
             if (!file.name.toLowerCase().endsWith('.wav')) return;
             foundWav = true;
 
-            // ローカルファイル再生用のURL生成
+            // iOS Safariで再生可能な形式としてURLを生成
             const objectUrl = URL.createObjectURL(file);
             
-            // ファイル名解析: "アーティスト_曲名.wav" の形式を想定
+            // ファイル名解析
             const name = file.name.replace(/\.wav$/i, '');
             const parts = name.split('_');
             const artist = parts.length > 1 ? parts[0] : "不明";
@@ -40,12 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="font-bold text-lg">${title}</h2>
                     <p class="text-sm text-gray-500">${artist}</p>
                 </div>
-                <audio controls src="${objectUrl}" class="w-full h-10"></audio>
+                <audio controls src="${objectUrl}" class="w-full h-10" preload="metadata"></audio>
             `;
             songListContainer.appendChild(div);
         });
 
-        // 該当ファイルがない場合の通知
         if (!foundWav) {
             songListContainer.innerHTML = '<p class="text-center text-red-500">選択したファイルの中に.wavが見つかりませんでした。</p>';
         }
