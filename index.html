@@ -300,6 +300,7 @@
           const [activeTab, setActiveTab] = useState('library');
 
           const [currentSong, setCurrentSong] = useState(null);
+          const [loadedSong, setLoadedSong] = useState(null); // 【バグ修正】現在実際にオーディオにロードされている楽曲ステート
           const [isPlaying, setIsPlaying] = useState(false);
           const [currentTime, setCurrentTime] = useState(0);
           const [duration, setDuration] = useState(0);
@@ -773,26 +774,35 @@
             });
           }, [currentSong, songs]);
 
-          // ライブラリタップ時は「まず詳細画面に遷移」する
+          // ==========================================
+          // 【バグ修正】ライブラリをタップした際、新曲の詳細データを詳細画面にセットし、
+          // 混乱を防ぐため以前鳴っていた古い曲を一時停止する。
+          // ==========================================
           const selectSongDetail = (song) => {
             setCurrentSong(song);
             
-            // 選択中の曲が変わった場合：
-            if (currentSong?.filename !== song.filename) {
+            // 現在実際にロードして鳴っている曲と、新しく詳細表示した曲が異なる場合：
+            if (!loadedSong || loadedSong.filename !== song.filename) {
               setIsPlaying(false);
               if (audioRef.current) {
                 audioRef.current.pause();
               }
-              // 高速で疑似波形をまず瞬時にセット
+              // 高速で疑似波形をまず瞬時にセット（ロード完了を待たせない）
               generateFallbackWaveform(song.filename);
             }
             // 再生タブ（詳細画面）へ自動切り替え
             setActiveTab('player');
           };
 
-          // 再生制御コア：詳細画面で再生ボタンを押した時に実際に再生開始する
+          // ==========================================
+          // 【バグ修正】実際に曲の再生を開始する処理。
+          // 呼び出し時に現在ロードされた曲（loadedSong）のステートを更新する。
+          // ==========================================
           const playSong = async (song) => {
             if (!song) return;
+            
+            setCurrentSong(song); // 表示用の同期
+            setLoadedSong(song);  // ロード完了ステートの同期
 
             if (song.isDemo) {
               const demoUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
@@ -907,6 +917,11 @@
             }, 300);
           };
 
+          // ==========================================
+          // 【バグ修正】現在詳細表示している曲（currentSong）と
+          // 実際にオーディオタグに読み込まれている曲（loadedSong）が
+          // 一致していない場合に、正しく新規ロード（playSong）を走らせる。
+          // ==========================================
           const togglePlay = () => {
             if (!currentSong) {
               if (filteredSongs.length > 0) {
@@ -917,8 +932,8 @@
 
             if (!audioRef.current) return;
 
-            // ロードされていない場合は、実際にマウント・取得して開始
-            if (audioRef.current.src === "" || audioRef.current.src.indexOf('SoundHelix') === -1 && !fileMap.has(currentSong.filename) && !settings.cloudBaseUrl) {
+            // オーディオにまだ曲がロードされていない、または選択中の曲と異なる場合
+            if (!loadedSong || loadedSong.filename !== currentSong.filename) {
               playSong(currentSong);
               return;
             }
@@ -936,28 +951,43 @@
             }
           };
 
+          // ==========================================
+          // 【バグ修正】「次の曲」を押した際は、詳細表示を更新したのち、
+          // 自動でその次の曲の再生を即時に開始（自動的に次が再生される音楽アプリ標準挙動）
+          // ==========================================
           const handleNext = () => {
             if (filteredSongs.length === 0) return;
+            let nextSong = null;
             if (isShuffle) {
               const rnd = Math.floor(Math.random() * filteredSongs.length);
-              selectSongDetail(filteredSongs[rnd]);
-              return;
-            }
-            const idx = filteredSongs.findIndex(s => s.filename === currentSong?.filename);
-            if (idx === -1 || idx === filteredSongs.length - 1) {
-              selectSongDetail(filteredSongs[0]);
+              nextSong = filteredSongs[rnd];
             } else {
-              selectSongDetail(filteredSongs[idx + 1]);
+              const idx = filteredSongs.findIndex(s => s.filename === currentSong?.filename);
+              if (idx === -1 || idx === filteredSongs.length - 1) {
+                nextSong = filteredSongs[0];
+              } else {
+                nextSong = filteredSongs[idx + 1];
+              }
+            }
+            if (nextSong) {
+              playSong(nextSong);
             }
           };
 
+          // ==========================================
+          // 【バグ修正】「前の曲」を押した際も、即時に新しい曲を再生開始
+          // ==========================================
           const handlePrev = () => {
             if (filteredSongs.length === 0) return;
+            let prevSong = null;
             const idx = filteredSongs.findIndex(s => s.filename === currentSong?.filename);
             if (idx === -1 || idx === 0) {
-              selectSongDetail(filteredSongs[filteredSongs.length - 1]);
+              prevSong = filteredSongs[filteredSongs.length - 1];
             } else {
-              selectSongDetail(filteredSongs[idx - 1]);
+              prevSong = filteredSongs[idx - 1];
+            }
+            if (prevSong) {
+              playSong(prevSong);
             }
           };
 
@@ -2023,7 +2053,7 @@
                           value={editingSong.comments || ''}
                           onChange={(e) => setEditingSong({ ...editingSong, comments: e.target.value })}
                           rows={3}
-                          className="w-full p-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-rose-500 resize-none leading-relaxed font-semibold"
+                          className="w-full p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-sm text-white focus:outline-none focus:border-rose-500 resize-none leading-relaxed font-semibold"
                           placeholder="最高音の出しやすさやキー設定のメモなど..."
                         />
                       </div>
