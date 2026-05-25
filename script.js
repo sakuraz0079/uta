@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = parts[1] || filename;
             const version = parts.slice(2).join('_').replace('.wav', '') || "";
 
-            // URL生成の修正: uc?id={id}&export=download に変更し、さらに直接アクセスを試みる形式
+            // Google Driveの直接ダウンロードリンク
             const url = `https://drive.google.com/uc?id=${fileId}&export=download`;
 
             const div = document.createElement('div');
@@ -41,8 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="font-bold text-lg">${title}</h2>
                     <p class="text-sm text-gray-600">${artist} ${version ? `(${version})` : ''}</p>
                 </div>
-                <audio controls class="w-full h-10 mt-2">
-                    <source src="${url}" type="audio/wav">
+                <!-- type指定を外し、ブラウザが自動判定するように変更 -->
+                <audio controls preload="none" class="w-full h-10 mt-2">
+                    <source src="${url}">
                     お使いのブラウザは再生に対応していません。
                 </audio>
             `;
