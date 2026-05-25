@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
+            console.log("読み込んだデータ:", data); // データの中身をブラウザのコンソールで確認
             allSongs = data;
             renderSongs(allSongs);
         })
@@ -24,15 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         songListContainer.innerHTML = '';
         songs.forEach(song => {
+            // ここでデータキーを柔軟に取得できるように修正（大文字・小文字対応）
+            const title = song.title || song.Title || song.TITLE || '無題';
+            const artist = song.artist || song.Artist || song.ARTIST || '不明';
+            const version = song.version || song.Version || song.VERSION || '';
+            const url = song.url || song.URL;
+
             const div = document.createElement('div');
             div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
             div.innerHTML = `
                 <div class="mb-2">
-                    <h2 class="font-bold text-lg">${song.title || '無題'}</h2>
-                    <p class="text-sm text-gray-600">${song.artist || '不明'} ${song.version ? `(${song.version})` : ''}</p>
+                    <h2 class="font-bold text-lg">${title}</h2>
+                    <p class="text-sm text-gray-600">${artist} ${version ? `(${version})` : ''}</p>
                 </div>
                 <audio controls class="w-full h-10 mt-2">
-                    <source src="${song.url}" type="audio/wav">
+                    <source src="${url}" type="audio/wav">
                     お使いのブラウザは再生に対応していません。
                 </audio>
             `;
