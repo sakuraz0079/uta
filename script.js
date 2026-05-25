@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
-            console.log("読み込んだデータ:", data); // データの中身をブラウザのコンソールで確認
+            console.log("読み込んだデータ:", data);
             allSongs = data;
             renderSongs(allSongs);
         })
@@ -25,11 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         songListContainer.innerHTML = '';
         songs.forEach(song => {
-            // ここでデータキーを柔軟に取得できるように修正（大文字・小文字対応）
-            const title = song.title || song.Title || song.TITLE || '無題';
-            const artist = song.artist || song.Artist || song.ARTIST || '不明';
-            const version = song.version || song.Version || song.VERSION || '';
-            const url = song.url || song.URL;
+            // data.jsonのキー名に合わせて取得
+            const filename = song["ファイル名"] || "";
+            const fileId = song["ファイルID"] || "";
+            
+            // ファイル名からアーティスト名と曲名を分解 (アンダースコアで分割)
+            const parts = filename.split('_');
+            const artist = parts[0] || "不明";
+            const title = parts[1] || filename;
+            const version = parts.slice(2).join('_').replace('.wav', '') || "";
+
+            // Google Driveの再生用URLを作成
+            const url = `https://drive.google.com/uc?export=open&id=${fileId}`;
 
             const div = document.createElement('div');
             div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
@@ -51,8 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const filtered = allSongs.filter(song => 
-            (song.title && song.title.toLowerCase().includes(searchTerm)) || 
-            (song.artist && song.artist.toLowerCase().includes(searchTerm))
+            (song["ファイル名"] && song["ファイル名"].toLowerCase().includes(searchTerm))
         );
         renderSongs(filtered);
     });
