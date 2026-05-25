@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -54,7 +54,7 @@
         window.onerror = function(message, source, lineno, colno, error) {
             const errDiv = document.createElement('div');
             errDiv.style = 'position:fixed;top:0;left:0;width:100%;background:#880000;color:#fff;padding:12px;z-index:99999;font-family:monospace;font-size:12px;white-space:pre-wrap;box-shadow:0 4px 10px rgba(0,0,0,0.5);border-bottom:2px solid #ff0055;';
-            errDiv.innerText = '?? エラー検知 (お手数ですが、下記を開発者にお知らせください):\n' + message + '\n\n場所: ' + source + ' (行: ' + lineno + ' / 列: ' + colno + ')';
+            errDiv.innerText = '⚠️ エラー検知 (お手数ですが、下記を開発者にお知らせください):\n' + message + '\n\n場所: ' + source + ' (行: ' + lineno + ' / 列: ' + colno + ')';
             document.body.appendChild(errDiv);
             return false;
         };
@@ -77,8 +77,7 @@
         ];
 
         // ==========================================
-        // 軽量かつ完全ポータブルな SVGアイコンコンポーネント (サイズアップ修正版)
-        // Tailwindに実在する標準サイズを割り当てて巨大化や消失を防ぎます
+        // 軽量かつ完全ポータブルな SVGアイコンコンポーネント (サイズ規格修正版)
         // ==========================================
         const SvgIcon = ({ name, className = "w-6 h-6" }) => {
           const icons = {
@@ -329,10 +328,11 @@
           const [isSyncing, setIsSyncing] = useState(false);
           const [unresolvedSong, setUnresolvedSong] = useState(null);
 
-          // アプリ設定情報ステート (ベースURL、ファイル自動永続化等)
+          // アプリ設定情報ステート (ベースURL、ファイル自動永続化、リストURL)
           const [settings, setSettings] = useState({
             cloudBaseUrl: '', 
-            autoLocalCache: true 
+            cloudListUrl: '', // 【新設】クラウド上の一覧リスト(songs_list.txt)のURL
+            autoLocalCache: false // iPhone空き容量不足対策のためデフォルトを一時キャッシュ（完全ストリーミング）推奨に変更
           });
 
           // 手動データ入力用ステート
@@ -419,6 +419,12 @@
                   }
                   setPlaylists(initialPlaylists);
                 }
+
+                // 3. 【クラウド連携・起動時自動監視】もしクラウド共有リストのURLが登録されていれば自動取得を実行
+                if (currentSettings.cloudListUrl) {
+                  triggerCloudListSync(currentSettings.cloudListUrl, savedSongs);
+                }
+
               } catch (err) {
                 console.error("DBロードエラー:", err);
               }
@@ -562,6 +568,90 @@
             const updatedSettings = { ...settings, [key]: value };
             setSettings(updatedSettings);
             await saveToDB(STORE_SETTINGS, { key, value });
+          };
+
+          // ==========================================
+          // 【新規追加】クラウド共有リスト(songs_list.txt)の自動取得同期
+          // ==========================================
+          const triggerCloudListSync = async (targetUrl, currentLocalSongs = songs) => {
+            if (!targetUrl) return;
+            setIsSyncing(true);
+            try {
+              const response = await fetch(targetUrl + '?nocache=' + Date.now());
+              if (!response.ok) throw new Error("クラウドの曲リストファイルのフェッチに失敗しました");
+              
+              const rawText = await response.text();
+              const lines = rawText.split('\n');
+              
+              let newCount = 0;
+              const localSongsMap = new Map(currentLocalSongs.map(s => [s.filename, s]));
+              const updatedSongs = [...currentLocalSongs];
+
+              lines.forEach(line => {
+                let filename = line.trim();
+                if (!filename) return;
+
+                // WAV/MP3の拡張子がない場合は自動補填
+                if (!filename.toLowerCase().endsWith('.wav') && !filename.toLowerCase().endsWith('.mp3')) {
+                  filename += '.wav';
+                }
+
+                // ローカル側のIndexedDBにまだ登録されていない新曲のみマージ追加
+                if (!localSongsMap.has(filename)) {
+                  const cleanName = filename.substring(0, filename.lastIndexOf('.'));
+                  const parts = cleanName.split('_');
+                  
+                  let artist = '不明なアーティスト';
+                  let title = cleanName;
+                  let version = '通常音源';
+
+                  if (parts.length >= 2) {
+                    artist = parts[0].trim();
+                    title = parts[1].trim();
+                    if (parts.length >= 3) {
+                      version = parts.slice(2).join('_').trim();
+                    }
+                  }
+
+                  const newSong = {
+                    filename,
+                    artist,
+                    title,
+                    version,
+                    highestChest: '未設定', 
+                    rating: 3, 
+                    comments: '',
+                    dateAdded: new Date().toISOString()
+                  };
+
+                  updatedSongs.push(newSong);
+                  saveToDB(STORE_SONGS, newSong);
+                  analyzeSongBackground(newSong);
+                  newCount++;
+                }
+              });
+
+              setSongs(updatedSongs);
+              setIsSyncing(false);
+              if (newCount > 0) {
+                showStatus(`クラウドリストから新曲${newCount}曲を追加同期しました！`, 'success');
+              } else {
+                console.log("クラウドリスト同期完了 (新曲なし)");
+              }
+            } catch (err) {
+              console.error("Cloud list sync failed:", err);
+              setIsSyncing(false);
+              showStatus("クラウド曲リストの自動更新に失敗しました", "error");
+            }
+          };
+
+          // 手動でクラウド共有リストをフェッチ実行するボタン用
+          const handleManualCloudListSync = () => {
+            if (!settings.cloudListUrl) {
+              showStatus("共有リストURLが登録されていません", "error");
+              return;
+            }
+            triggerCloudListSync(settings.cloudListUrl, songs);
           };
 
           // スマホ用軽量ファイル同期 ＆ IndexedDB実ファイルキャッシュ
@@ -831,7 +921,7 @@
             
             // A. メモリやIndexedDBにファイルキャッシュがない場合、クラウドから自動取得
             if (!file && settings.cloudBaseUrl) {
-              showStatus("クラウドから音源を自動ダウンロード中...", "info");
+              showStatus("クラウドから音源を自動ロード中...", "info");
               try {
                 let base = settings.cloudBaseUrl;
                 if (!base.endsWith('/')) base += '/';
@@ -1056,7 +1146,7 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            // 背景目盛りグリッド（少し明るくしてピッチ感を持たせる）
+            // 背景目盛りグリッド
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
             for (let i = 0; i < width; i += 40) {
@@ -1073,7 +1163,6 @@
             const currentBarIndex = Math.floor(progress * waveformPeaks.length);
 
             if (waveformPeaks.length > 0) {
-              // 肉厚でハッキリ見える波形間隔の設定
               const barWidth = width / waveformPeaks.length;
               const centerY = height / 2;
 
@@ -1082,23 +1171,21 @@
                 const active = i <= currentBarIndex;
                 
                 const bounce = active && isPlaying ? 1.0 + (volumeMultiplier * 0.45) : 1.0;
-                const barHeight = peak * (height * 0.85) * bounce; // 高さを引き上げてダイナミックに
+                const barHeight = peak * (height * 0.85) * bounce; 
                 const topY = centerY - barHeight / 2;
 
                 ctx.beginPath();
                 if (active) {
-                  // 超視認性の高いマゼンタからシアン（ネオングラデーション）
+                  // 超視認性の高いマゼンタからシアン
                   const gradient = ctx.createLinearGradient(x, topY, x, topY + barHeight);
-                  gradient.addColorStop(0, '#00f2fe'); // ネオンブルー
-                  gradient.addColorStop(0.5, '#4facfe'); // シアン
-                  gradient.addColorStop(1, '#f43f5e'); // ネオンローズ
+                  gradient.addColorStop(0, '#00f2fe'); 
+                  gradient.addColorStop(0.5, '#4facfe'); 
+                  gradient.addColorStop(1, '#f43f5e'); 
                   ctx.fillStyle = gradient;
                 } else {
-                  // 未再生領域：半透明でしっかり見え、アクティブと明確にコントラストがつくシアン
                   ctx.fillStyle = 'rgba(6, 182, 212, 0.22)'; 
                 }
 
-                // バーの厚みを増やす（隙間を詰めて視認しやすくする）
                 const radius = Math.max(1.5, barWidth / 2 - 0.5);
                 if (ctx.roundRect) {
                   ctx.roundRect(x + 1, topY, barWidth - 1.2, barHeight, radius);
@@ -1108,12 +1195,11 @@
                 ctx.fill();
               });
 
-              // 再生縦軸シークカーソル（太く発光させて、どこを歌っているか瞬時にわかるようにする）
               const cursorX = progress * width;
               ctx.shadowBlur = 10;
               ctx.shadowColor = '#00f2fe';
               ctx.strokeStyle = '#ffffff';
-              ctx.lineWidth = 4; // 太さを強化
+              ctx.lineWidth = 4; 
               ctx.beginPath();
               ctx.moveTo(cursorX, 0);
               ctx.lineTo(cursorX, height);
@@ -1479,7 +1565,7 @@
                         <CharacterMascot className="w-36 h-36 mx-auto opacity-35" mood="idle" />
                         <h3 className="text-base font-bold text-neutral-400 mt-4">再生する曲を選択してください</h3>
                         <p className="text-sm text-neutral-600 mt-2 max-w-xs mx-auto leading-relaxed">
-                          隣の「ライブラリ」をタップして曲の詳細を確認し、そこから大きな再生ボタンを押して練習を開始します。
+                          隣 of 「ライブラリ」をタップして曲の詳細を確認し、そこから大きな再生ボタンを押して練習を開始します。
                         </p>
                       </div>
                     )}
@@ -1601,7 +1687,7 @@
                                   )}
                                 </div>
                                 <p className="text-sm text-neutral-400 truncate font-bold">
-                                  {song.artist} <span className="opacity-30">?</span> {song.version}
+                                  {song.artist} <span className="opacity-30">•</span> {song.version}
                                 </p>
                               </div>
                             </div>
@@ -1642,32 +1728,56 @@
                   activeTab === 'input_data' ? 'translate-x-0' : 'translate-x-full pointer-events-none'
                 }`}>
                   
-                  {/* 新設：1. クラウドベースURL自動同期設定 */}
+                  {/* 新設：1. クラウドベースURL・共有リストURL自動スキャン設定 */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                       <SvgIcon name="settings" className="w-5 h-5 text-rose-500" />
-                      クラウド自動取得（ベースURL）の設定
+                      クラウド共有フォルダ自動同期の設定
                     </h3>
                     <p className="text-xs text-neutral-400 leading-relaxed">
-                      GitHub Pagesや共有サーバーのベースURLを設定します。登録すると、リロード後でもURLから音源を自動でスマホにロードして即座に再生できるようになります！
+                      GitHub Pages等のクラウド上のWAV/MP3フォルダアドレス、および楽曲一覧テキスト（`songs_list.txt`）の直リンクURLを登録します。起動時に自動的に最新の楽曲リストを同期監視します。
                     </p>
 
-                    <div className="space-y-2">
-                      <input 
-                        type="url" 
-                        value={settings.cloudBaseUrl}
-                        onChange={(e) => updateAppSetting('cloudBaseUrl', e.target.value)}
-                        placeholder="https://raw.githubusercontent.com/[ユーザー名]/[リポジトリ]/main/songs/" 
-                        className="w-full p-3 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
-                      />
-                      <p className="text-[11px] text-neutral-500 font-bold">
-                        ※上記URL配下に「アーティスト名_曲名_バージョン.wav」が配置されている必要があります。
-                      </p>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[11px] text-neutral-400 font-bold block mb-1">① クラウド配信ベースURL（実音源フォルダ）</label>
+                        <input 
+                          type="url" 
+                          value={settings.cloudBaseUrl}
+                          onChange={(e) => updateAppSetting('cloudBaseUrl', e.target.value)}
+                          placeholder="https://raw.githubusercontent.com/[ユーザー名]/[リポジトリ]/main/songs/" 
+                          className="w-full p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] text-neutral-400 font-bold block mb-1">② 共有リストURL（自動監視用のテキストファイル）</label>
+                        <input 
+                          type="url" 
+                          value={settings.cloudListUrl}
+                          onChange={(e) => updateAppSetting('cloudListUrl', e.target.value)}
+                          placeholder="https://[ユーザー名].github.io/[リポジトリ]/songs_list.txt" 
+                          className="w-full p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
+                        />
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 border-t border-neutral-850/40">
-                      <span className="text-xs font-bold text-neutral-300">音源のブラウザ永続キャッシュ</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                    <div className="flex gap-2 pt-2">
+                      <button 
+                        onClick={handleManualCloudListSync}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-rose-600 hover:bg-rose-500 text-neutral-950 rounded-xl text-xs font-black transition-colors"
+                      >
+                        <SvgIcon name="refreshCw" className="w-4 h-4" />
+                        <span>今すぐクラウドリストから同期</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-neutral-850/40">
+                      <div className="min-w-0 pr-2">
+                        <span className="text-xs font-bold text-neutral-300 block">音源のブラウザ永続キャッシュ</span>
+                        <span className="text-[10px] text-neutral-500">※iPhoneの容量が不足している場合はOFF（ストリーミング再生）を強く推奨します。</span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                         <input 
                           type="checkbox" 
                           checked={settings.autoLocalCache}
@@ -1679,10 +1789,10 @@
                     </div>
                   </div>
 
-                  {/* 新設：2. 実音源の同期 (複数選択マウント ＆ ブラウザキャッシュ) */}
+                  {/* 2. 実音源の同期 (複数選択マウント ＆ ブラウザキャッシュ) */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-2.5">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                      <SvgIcon name="folderOpen" className="w-5 h-5 text-cyan-400" />
+                      <SvgIcon name="folderOpen" className="text-cyan-400" />
                       音源ファイルの同期 ＆ ブラウザ永続化
                     </h3>
                     <p className="text-xs text-neutral-400 leading-relaxed">
@@ -1725,7 +1835,7 @@
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <div className="space-y-1">
                       <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                        <SvgIcon name="listMusic" className="w-5 h-5 text-rose-400" />
+                        <SvgIcon name="listMusic" className="text-rose-400" />
                         ファイル名リストから曲を一括登録
                       </h3>
                       <p className="text-xs text-neutral-400 leading-relaxed">
@@ -1752,7 +1862,7 @@
                   {/* 4. 1曲手動登録 */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                      <SvgIcon name="plus" className="w-5 h-5 text-amber-400" />
+                      <SvgIcon name="plus" className="text-amber-400" />
                       1曲ずつ手動で新規登録
                     </h3>
 
@@ -1822,7 +1932,6 @@
 
               {/* ==========================================
                   最下部：常駐型ミニプレーヤー ＆ クイック再生
-                  【不具合修正箇所】w-5.5 / w-6.5 の非実在Tailwindクラスを w-5 / w-6 実在クラスへ全置換
                   ========================================== */}
               <div className="flex-shrink-0 border-t border-neutral-900 bg-neutral-950 p-3.5 space-y-3.5 z-40">
                 
@@ -1868,7 +1977,7 @@
                     )}
                   </div>
 
-                  {/* プレイヤー中心ボタン (アイコンの消失を100%防止するため実在クラス w-5 h-5 / w-6 h-6 を厳格に適用) */}
+                  {/* プレイヤー中心ボタン */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button 
                       onClick={() => setIsShuffle(!isShuffle)}
