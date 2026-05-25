@@ -852,6 +852,14 @@
             setActiveTab('library');
           };
 
+          // 最新15曲算出処理
+          const latest15Songs = useMemo(() => {
+            return [...songs]
+              .filter(s => !s.isDemo)
+              .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+              .slice(0, 15);
+          }, [songs]);
+
           // 楽曲フィルタリング
           const filteredSongs = useMemo(() => {
             let list = [];
@@ -1137,7 +1145,7 @@
                 src.connect(analyserRef.current);
                 analyserRef.current.connect(ctx.destination);
               } catch (e) {
-                console.log("Audio node linked.");
+                console.log("Audio source setup ignored (using safari fallback).");
               }
             }
             animateWave();
@@ -1178,6 +1186,7 @@
             const currentBarIndex = Math.floor(progress * waveformPeaks.length);
 
             if (waveformPeaks.length > 0) {
+              // 肉厚でハッキリ見える波形間隔の設定
               const barWidth = width / waveformPeaks.length;
               const centerY = height / 2;
 
@@ -1191,16 +1200,18 @@
 
                 ctx.beginPath();
                 if (active) {
-                  // 超視認性の高いマゼンタからシアン
+                  // 超視認性の高いマゼンタからシアン（ネオングラデーション）
                   const gradient = ctx.createLinearGradient(x, topY, x, topY + barHeight);
-                  gradient.addColorStop(0, '#00f2fe'); 
-                  gradient.addColorStop(0.5, '#4facfe'); 
-                  gradient.addColorStop(1, '#f43f5e'); 
+                  gradient.addColorStop(0, '#00f2fe'); // ネオンブルー
+                  gradient.addColorStop(0.5, '#4facfe'); // シアン
+                  gradient.addColorStop(1, '#f43f5e'); // ネオンローズ
                   ctx.fillStyle = gradient;
                 } else {
+                  // 未再生領域：半透明でしっかり見え、アクティブと明確にコントラストがつくシアン
                   ctx.fillStyle = 'rgba(6, 182, 212, 0.22)'; 
                 }
 
+                // バーの厚みを増やす（隙間を詰めて視認しやすくする）
                 const radius = Math.max(1.5, barWidth / 2 - 0.5);
                 if (ctx.roundRect) {
                   ctx.roundRect(x + 1, topY, barWidth - 1.2, barHeight, radius);
@@ -1210,6 +1221,7 @@
                 ctx.fill();
               });
 
+              // 再生縦軸シークカーソル（太く発光させて、どこを歌っているか瞬時にわかるようにする）
               const cursorX = progress * width;
               ctx.shadowBlur = 10;
               ctx.shadowColor = '#00f2fe';
@@ -1515,7 +1527,7 @@
                     <h1 className="text-2xl font-black tracking-widest text-rose-500 flex items-center gap-1.5 leading-none">
                       ウタアーカイブ
                     </h1>
-                    <p className="text-xs text-neutral-400 font-bold mt-1">選曲 ＆ 歌声キーデータベース</p>
+                    <p className="text-sm text-neutral-400 font-bold mt-1">選曲 ＆ 歌声キーデータベース</p>
                   </div>
                 </div>
 
@@ -1612,10 +1624,10 @@
                           )}
                         </div>
 
-                        {/* 特大・歌唱スタッツ表示 (老眼対策：さらに特大化) */}
-                        <div className="bg-neutral-900/80 p-5 rounded-2xl border-2 border-rose-500/40 shadow-inner max-w-xs mx-auto">
+                        {/* 特大・歌唱スタッツ表示 (老眼対策：さらに特大化を text-5xl から text-6xl へ強化) */}
+                        <div className="bg-neutral-900/80 p-5 rounded-3xl border-2 border-rose-500/40 shadow-inner max-w-xs mx-auto">
                           <span className="text-base text-rose-400 font-black block tracking-widest mb-1">【地声最高音】</span>
-                          <span className="text-5xl font-black text-white font-mono tracking-tight">{currentSong.highestChest || '未設定'}</span>
+                          <span className="text-6xl font-black text-white font-mono tracking-tight">{currentSong.highestChest || '未設定'}</span>
                         </div>
 
                         {/* 類似地声音階の楽曲ショートカット (老眼対策：文字拡大) */}
@@ -1669,7 +1681,7 @@
                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                       <button 
                         onClick={() => setCurrentPlaylist('all')} 
-                        className={`px-4.5 py-2 rounded-full text-sm font-black whitespace-nowrap transition-all ${
+                        className={`px-4.5 py-2.5 rounded-full text-sm font-black whitespace-nowrap transition-all ${
                           currentPlaylist === 'all' ? 'bg-rose-500 text-neutral-950 shadow-md shadow-rose-500/10' : 'bg-neutral-900 text-neutral-400'
                         }`}
                       >
@@ -1677,7 +1689,7 @@
                       </button>
                       <button 
                         onClick={() => setCurrentPlaylist('latest15')} 
-                        className={`px-4.5 py-2 rounded-full text-sm font-black whitespace-nowrap transition-all ${
+                        className={`px-4.5 py-2.5 rounded-full text-sm font-black whitespace-nowrap transition-all ${
                           currentPlaylist === 'latest15' ? 'bg-cyan-500 text-neutral-950 shadow-md shadow-cyan-500/10' : 'bg-neutral-900 text-neutral-400'
                         }`}
                       >
@@ -1724,7 +1736,7 @@
 
                   </div>
 
-                  {/* 独立スクロール曲リスト (タップで詳細画面へ遷移、老眼対策：全文字サイズ拡大) */}
+                  {/* 独立スクロール曲リスト (タップで詳細画面へ遷移、老眼対策：全文字サイズをさらに拡大) */}
                   <div className="flex-1 overflow-y-auto divide-y divide-neutral-900 bg-neutral-950/30 smooth-scroll">
                     {filteredSongs.length > 0 ? (
                       filteredSongs.map((song, idx) => {
@@ -1735,7 +1747,7 @@
                         return (
                           <div 
                             key={song.filename} 
-                            className={`flex items-center justify-between p-4.5 transition-colors active:bg-neutral-900 select-none ${
+                            className={`flex items-center justify-between p-5 transition-colors active:bg-neutral-900 select-none ${
                               isSelected ? 'bg-rose-950/15 border-l-4 border-rose-500' : 'hover:bg-neutral-900/20'
                             }`}
                             onClick={() => selectSongDetail(song)}
@@ -1744,29 +1756,29 @@
                               
                               {/* 番号 */}
                               <div className="flex-shrink-0 w-6 flex justify-center">
-                                <div className="text-base font-mono font-black text-neutral-500">
+                                <div className="text-lg font-mono font-black text-neutral-500">
                                   {idx + 1}
                                 </div>
                               </div>
 
                               {/* タイトル等 (文字サイズを大幅拡大) */}
-                              <div className="min-w-0 flex-1 space-y-1">
+                              <div className="min-w-0 flex-1 space-y-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <p className={`text-lg font-black truncate leading-tight ${isSelected ? 'text-rose-400' : 'text-neutral-100'}`}>
+                                  <p className={`text-xl font-black truncate leading-tight ${isSelected ? 'text-rose-400' : 'text-neutral-100'}`}>
                                     {song.title}
                                   </p>
                                   {song.isDemo ? (
-                                    <span className="text-[10px] font-bold bg-amber-950/80 border border-amber-800 text-amber-400 px-1.5 py-0.2 rounded">デモ</span>
+                                    <span className="text-[11px] font-bold bg-amber-950/80 border border-amber-800 text-amber-400 px-2 py-0.5 rounded">デモ</span>
                                   ) : fileLoaded ? (
-                                    <span className="text-[10px] font-black bg-emerald-950/90 border border-emerald-900 text-emerald-400 px-1.5 py-0.2 rounded">
+                                    <span className="text-[11px] font-black bg-emerald-950/90 border border-emerald-900 text-emerald-400 px-2 py-0.5 rounded">
                                       保存済
                                     </span>
                                   ) : hasCloudOption ? (
-                                    <span className="text-[10px] font-black bg-sky-950/90 border border-sky-900 text-sky-400 px-1.5 py-0.2 rounded">
+                                    <span className="text-[11px] font-black bg-sky-950/90 border border-sky-900 text-sky-400 px-2 py-0.5 rounded">
                                       クラウド
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-black bg-neutral-900 border border-rose-950 text-rose-400/90 px-1.5 py-0.2 rounded tracking-tight">
+                                    <span className="text-[11px] font-black bg-neutral-900 border border-rose-950 text-rose-400/90 px-2 py-0.5 rounded tracking-tight">
                                       未同期
                                     </span>
                                   )}
@@ -1779,7 +1791,7 @@
 
                             {/* 右側：最高音階バッジのみ (老眼対策：拡大) */}
                             <div className="flex items-center gap-3.5 flex-shrink-0 ml-2">
-                              <div className="text-sm font-mono font-black px-3 py-1.5 bg-rose-950/40 text-rose-300 rounded-lg border border-rose-900/30">
+                              <div className="text-base font-mono font-black px-3 py-1.5 bg-rose-950/40 text-rose-300 rounded-lg border border-rose-900/30">
                                 {song.highestChest || '未設定'}
                               </div>
 
@@ -1791,7 +1803,7 @@
                                 }}
                                 className="p-2 text-neutral-400 hover:text-white"
                               >
-                                <SvgIcon name="edit3" className="w-6 h-6" />
+                                <SvgIcon name="edit3" className="w-6.5 h-6.5" />
                               </button>
                             </div>
 
@@ -1801,7 +1813,7 @@
                     ) : (
                       <div className="text-center py-24 text-neutral-600">
                         <SvgIcon name="music" className="w-14 h-14 mx-auto mb-2 opacity-25" />
-                        <p className="text-base font-black">登録された楽曲がありません</p>
+                        <p className="text-lg font-black">登録された楽曲がありません</p>
                       </div>
                     )}
                   </div>
@@ -1850,7 +1862,7 @@
                     <div className="flex gap-2 pt-1">
                       <button 
                         onClick={handleManualCloudListSync}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-rose-600 hover:bg-rose-500 text-neutral-950 rounded-xl text-sm font-black transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-rose-600 hover:bg-rose-500 text-neutral-950 rounded-xl text-sm font-black transition-colors"
                       >
                         <SvgIcon name="refreshCw" className="w-4.5 h-4.5" />
                         <span>今すぐクラウドから曲を読み込む</span>
@@ -1924,7 +1936,7 @@
                         ファイル名リストから曲を一括登録
                       </h3>
                       <p className="text-sm text-neutral-400 leading-relaxed">
-                        お手持ちの300曲のファイル名一覧を改行区切りで貼り付けるだけで、一度にデータベースにインポートされます。
+                        ファイル名一覧を改行区切りで貼り付けるだけで、一度にデータベースにインポートされます。
                       </p>
                     </div>
 
