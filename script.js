@@ -1,38 +1,37 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('fileInput');
-    const songListContainer = document.getElementById('songList');
-
-    // ファイル選択時のイベント
-    fileInput.addEventListener('change', (event) => {
-        const files = event.target.files;
-        if (files.length > 0) {
-            renderSongs(files);
-        }
-    });
-
-    function renderSongs(files) {
-        songListContainer.innerHTML = '';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTA-ARCHIVE MOBILE</title>
+    <!-- 便利なデザインフレームワークTailwind CSSを読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen">
+    
+    <div class="max-w-md mx-auto p-4">
+        <!-- タイトルエリア -->
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">UTA-ARCHIVE</h1>
         
-        Array.from(files).forEach((file) => {
-            // 一時的な再生URLを作成
-            const objectUrl = URL.createObjectURL(file);
-            
-            // ファイル名からアーティスト名と曲名を推測
-            const name = file.name.replace(/\.(wav|mp3|m4a|aac)$/i, '');
-            const parts = name.split('_');
-            const artist = parts.length > 1 ? parts[0] : "不明";
-            const title = parts.length > 1 ? parts[1] : name;
+        <!-- iPhoneローカルファイル選択エリア -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">楽曲ファイルを選択 (複数可)</label>
+            <input type="file" id="fileInput" multiple accept="audio/*" 
+                   class="block w-full text-sm text-gray-500 
+                          file:mr-4 file:py-2 file:px-4 
+                          file:rounded-full file:border-0 
+                          file:bg-blue-500 file:text-white 
+                          hover:file:bg-blue-600 transition-colors">
+        </div>
 
-            const div = document.createElement('div');
-            div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-2';
-            div.innerHTML = `
-                <div class="mb-2">
-                    <h2 class="font-bold text-lg">${title}</h2>
-                    <p class="text-sm text-gray-500">${artist}</p>
-                </div>
-                <audio controls src="${objectUrl}" class="w-full h-10"></audio>
-            `;
-            songListContainer.appendChild(div);
-        });
-    }
-});
+        <!-- 楽曲リスト表示エリア -->
+        <div id="songList" class="space-y-4">
+            <!-- JavaScriptによってここへデータが書き込まれます -->
+            <p class="text-center text-gray-500">ファイルを選択するとここにリストが表示されます</p>
+        </div>
+    </div>
+
+    <!-- JavaScriptファイルの読み込み -->
+    <script src="script.js"></script>
+</body>
+</html>
