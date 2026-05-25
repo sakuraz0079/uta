@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -20,7 +20,7 @@
     <!-- React 18 & ReactDOM 18 CDN -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Babel (�u���E�U���JSX���R���p�C��) -->
+    <!-- Babel (ブラウザ上でJSXをコンパイル) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
@@ -33,21 +33,21 @@
         }
         body {
             background-color: #050505;
-            overscroll-behavior-y: contain; /* iOS�̈������胊���[�h�����S�ɖh�~ */
+            overscroll-behavior-y: contain; /* iOSの引っ張りリロードを完全に防止 */
             -webkit-tap-highlight-color: transparent;
         }
-        /* �X���[�Y�ȃX�N���[�� */
+        /* スムーズなスクロール */
         .smooth-scroll {
             -webkit-overflow-scrolling: touch;
         }
     </style>
     
-    <!-- �X�}�z�pJavaScript�G���[���m�f�o�b�K�[ -->
+    <!-- スマホ用JavaScriptエラー検知デバッガー -->
     <script>
         window.onerror = function(message, source, lineno, colno, error) {
             const errDiv = document.createElement('div');
             errDiv.style = 'position:fixed;top:0;left:0;width:100%;background:#880000;color:#fff;padding:12px;z-index:99999;font-family:monospace;font-size:12px;white-space:pre-wrap;box-shadow:0 4px 10px rgba(0,0,0,0.5);border-bottom:2px solid #ff0055;';
-            errDiv.innerText = '?? �G���[���m (���萔�ł����A���L���J���҂ɂ��m�点��������):\n' + message + '\n\n�ꏊ: ' + source + ' (�s: ' + lineno + ' / ��: ' + colno + ')';
+            errDiv.innerText = '?? エラー検知 (お手数ですが、下記を開発者にお知らせください):\n' + message + '\n\n場所: ' + source + ' (行: ' + lineno + ' / 列: ' + colno + ')';
             document.body.appendChild(errDiv);
             return false;
         };
@@ -57,11 +57,11 @@
 
     <div id="root"></div>
 
-    <!-- React�R�[�h of HTML (Babel�Ńg�����X�p�C��) -->
+    <!-- Reactコード of HTML (Babelでトランスパイル) -->
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // ���������e�[�u���i�n���ō����̗ގ������Ŏg�p�j
+        // 音高順序テーブル（地声最高音の類似検索で使用）
         const PITCH_ORDER = [
           'mid1a', 'mid1a#', 'mid1b', 'mid1c', 'mid1c#', 'mid1d', 'mid1d#', 'mid1e', 'mid1f', 'mid1f#', 'mid1g', 'mid1g#',
           'mid2a', 'mid2a#', 'mid2b', 'mid2c', 'mid2c#', 'mid2d', 'mid2d#', 'mid2e', 'mid2f', 'mid2f#', 'mid2g', 'mid2g#',
@@ -70,7 +70,7 @@
         ];
 
         // ==========================================
-        // �y�ʂ����S�|�[�^�u���� SVG�A�C�R���R���|�[�l���g (�T�C�Y�A�b�v��)
+        // 軽量かつ完全ポータブルな SVGアイコンコンポーネント (サイズアップ版)
         // ==========================================
         const SvgIcon = ({ name, className = "w-6 h-6" }) => {
           const icons = {
@@ -107,7 +107,7 @@
         };
 
         // ==========================================
-        // �L�����N�^�[�摜�R���|�[�l���g
+        // キャラクター画像コンポーネント
         // ==========================================
         const CharacterMascot = ({ className = "w-32 h-32", mood = "idle", isPlaying = false }) => {
           const [imageError, setImageError] = useState(false);
@@ -134,11 +134,11 @@
 
           const getMoodTitle = () => {
             switch (mood) {
-              case 'playing': return '�Đ����I�m���m��';
-              case 'angry': return '�t�@�C��������';
-              case 'cool': return '�h���炤���˂�';
-              case 'happy': return '�Z�[�u�听���I';
-              default: return '�����˂��ҋ@��';
+              case 'playing': return '再生中！ノリノリ';
+              case 'angry': return 'ファイル未同期';
+              case 'cool': return 'ドヤ顔うたねこ';
+              case 'happy': return 'セーブ大成功！';
+              default: return 'うたねこ待機中';
             }
           };
 
@@ -200,7 +200,7 @@
         };
 
         // ==========================================
-        // IndexedDB �ݒ� (�f�[�^�̃��[�J���i����)
+        // IndexedDB 設定 (データのローカル永続化)
         // ==========================================
         const DB_NAME = 'VocalArchiveDB_v4'; 
         const STORE_SONGS = 'songs_metadata';
@@ -238,7 +238,7 @@
               request.onerror = () => reject(request.error);
             });
           } catch (error) {
-            console.error('IndexedDB �ۑ��G���[:', error);
+            console.error('IndexedDB 保存エラー:', error);
           }
         };
 
@@ -253,7 +253,7 @@
               request.onerror = () => reject(request.error);
             });
           } catch (error) {
-            console.error('IndexedDB �ǂݍ��݃G���[:', error);
+            console.error('IndexedDB 読み込みエラー:', error);
             return [];
           }
         };
@@ -269,7 +269,7 @@
               request.onerror = () => reject(request.error);
             });
           } catch (error) {
-            console.error('IndexedDB �擾�G���[:', error);
+            console.error('IndexedDB 取得エラー:', error);
             return null;
           }
         };
@@ -285,12 +285,12 @@
               request.onerror = () => reject(request.error);
             });
           } catch (error) {
-            console.error('IndexedDB �폜�G���[:', error);
+            console.error('IndexedDB 削除エラー:', error);
           }
         };
 
         // ==========================================
-        // ���C���A�v���P�[�V����
+        // メインアプリケーション
         // ==========================================
         function App() {
           const [songs, setSongs] = useState([]);
@@ -320,13 +320,13 @@
           const [isSyncing, setIsSyncing] = useState(false);
           const [unresolvedSong, setUnresolvedSong] = useState(null);
 
-          // �A�v���ݒ���X�e�[�g (�x�[�XURL�A�t�@�C�������i������)
+          // アプリ設定情報ステート (ベースURL、ファイル自動永続化等)
           const [settings, setSettings] = useState({
             cloudBaseUrl: '', 
             autoLocalCache: true 
           });
 
-          // �蓮�f�[�^���͗p�X�e�[�g
+          // 手動データ入力用ステート
           const [bulkText, setBulkText] = useState('');
           const [singleManual, setSingleManual] = useState({ title: '', artist: '', version: '' });
 
@@ -351,11 +351,11 @@
             }
           };
 
-          // ���񃍁[�h�iIndexedDB���烁�^�f�[�^�E�������L���b�V���E���ݒ�����[�h�j
+          // 初回ロード（IndexedDBからメタデータ・実音源キャッシュ・環境設定をロード）
           useEffect(() => {
             const loadSavedData = async () => {
               try {
-                // 1. �ݒ���̕���
+                // 1. 設定情報の復元
                 const savedSettings = await getAllFromDB(STORE_SETTINGS);
                 const currentSettings = { ...settings };
                 savedSettings.forEach(set => {
@@ -363,11 +363,11 @@
                 });
                 setSettings(currentSettings);
 
-                // 2. �y�ȃ��X�g���̕���
+                // 2. 楽曲リスト情報の復元
                 const savedSongs = await getAllFromDB(STORE_SONGS);
                 const savedPlaylists = await getAllFromDB(STORE_PLAYLISTS);
                 
-                // ��������̉���Map�ifileMap�j��IndexedDB�ɉi�������ꂽ���t�@�C��Blob���畜���}�E���g����
+                // メモリ上の音源Map（fileMap）をIndexedDBに永続化された実ファイルBlobから復元マウントする
                 const restoredFileMap = new Map();
                 if (savedSongs && savedSongs.length > 0) {
                   savedSongs.forEach(song => {
@@ -378,16 +378,16 @@
                   setFileMap(restoredFileMap);
                   setSongs(savedSongs);
                 } else {
-                  // �������f����
+                  // お試しデモ曲
                   const demoSongs = [
                     {
-                      filename: '�f��_�����˂��̃e�[�}_OriginalKey.mp3',
-                      artist: '�����˂��y�c',
-                      title: '�����˂��̃e�[�}',
+                      filename: 'デモ_うたねこのテーマ_OriginalKey.mp3',
+                      artist: 'うたねこ楽団',
+                      title: 'うたねこのテーマ',
                       version: 'OriginalKey',
                       highestChest: 'hiB',
                       rating: 5,
-                      comments: '�̏��A�[�J�C�u�ւ悤�����IiCloud��Drive����WAV�t�@�C������́u�o�^/�����v����}�E���g���čĐ��ł��܂��B��x��荞�񂾉����̓u���E�U�������[�h���Ă����̂܂ܕێ�����܂��B',
+                      comments: '歌唱アーカイブへようこそ！iCloudやDrive内のWAVファイルを上の「登録/同期」からマウントして再生できます。一度取り込んだ音源はブラウザをリロードしてもそのまま保持されます。',
                       dateAdded: new Date().toISOString(),
                       isDemo: true
                     }
@@ -402,8 +402,8 @@
                   setPlaylists(savedPlaylists);
                 } else {
                   const initialPlaylists = [
-                    { id: 'fav', name: '?? ���C�ɓ���̏�', songFilenames: [] },
-                    { id: 'practice', name: '?? �J���I�P���P��', songFilenames: [] }
+                    { id: 'fav', name: '?? お気に入り歌唱', songFilenames: [] },
+                    { id: 'practice', name: '?? カラオケ特訓中', songFilenames: [] }
                   ];
                   for (const pl of initialPlaylists) {
                     await saveToDB(STORE_PLAYLISTS, pl);
@@ -411,13 +411,13 @@
                   setPlaylists(initialPlaylists);
                 }
               } catch (err) {
-                console.error("DB���[�h�G���[:", err);
+                console.error("DBロードエラー:", err);
               }
             };
             loadSavedData();
           }, []);
 
-          // �L�����N�^�[�\��A��
+          // キャラクター表情連動
           useEffect(() => {
             if (mascotMood === 'happy' || mascotMood === 'angry') return;
             
@@ -436,7 +436,7 @@
             }
           }, [isPlaying, currentSong, unresolvedSong, mascotMood]);
 
-          // ���b�N�X�N���[��(MediaSession API)�ւ̓����ݒ�y�X���[�v���o�b�N�O���E���h�Ή��z
+          // ロックスクリーン(MediaSession API)への同期設定【スリープ時バックグラウンド対応】
           const updateMediaSession = (song) => {
             if ('mediaSession' in navigator && song) {
               navigator.mediaSession.metadata = new MediaMetadata({
@@ -455,12 +455,12 @@
             }
           };
 
-          // PCM�f�R�[�h (�����^���G���x���[�v������Ƀo�b�N�O���E���h�Œx������)
+          // PCMデコード (高速疑似エンベロープ生成後にバックグラウンドで遅延処理)
           const decodeAndGenerateWaveform = async (file) => {
             setIsDecodingWaveform(true);
             try {
               const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-              // ���ׂ�}���邽�ߍŏ���12�b�������T���v�����O
+              // 負荷を抑えるため最初の12秒だけをサンプリング
               const offlineCtx = new OfflineAudioContext(1, 44100 * 12, 44100); 
               const arrayBuffer = await file.slice(0, 1024 * 1024 * 3).arrayBuffer(); 
               
@@ -482,7 +482,7 @@
                 setWaveformPeaks(peaks);
                 setIsDecodingWaveform(false);
               }, (err) => {
-                console.warn("PCM�f�R�[�h���s�B�ȈՕ`��̂܂܌p�����܂��B");
+                console.warn("PCMデコード失敗。簡易描画のまま継続します。");
                 setIsDecodingWaveform(false);
               });
             } catch (e) {
@@ -490,7 +490,7 @@
             }
           };
 
-          // �������^���G���x���[�v�g�`���� (WAV���[�h���^�b�v�����u�� 1�~���b�ŕ`�悵�Č�����d�g��)
+          // 超高速疑似エンベロープ波形生成 (WAVロードをタップした瞬間 1ミリ秒で描画して見せる仕組み)
           const generateFallbackWaveform = (filename) => {
             let hash = 0;
             for (let i = 0; i < filename.length; i++) {
@@ -506,12 +506,12 @@
             setWaveformPeaks(peaks);
           };
 
-          // ���掩�����
+          // 音域自動解析
           const analyzeSongBackground = (song, audioBuffer = null) => {
             let updated = false;
             const tempSong = { ...song };
 
-            if (tempSong.highestChest === '���ݒ�' || !tempSong.highestChest) {
+            if (tempSong.highestChest === '未設定' || !tempSong.highestChest) {
               const pitchMatch = tempSong.filename.match(/(hi[A-G]s?|hihi[A-G]s?|mid2[A-G]s?|mid1[A-G]s?)/i);
               if (pitchMatch) {
                 tempSong.highestChest = pitchMatch[0].toLowerCase();
@@ -519,8 +519,8 @@
               }
             }
 
-            if (tempSong.version === '�ʏ퉹��' || !tempSong.version) {
-              const keyMatch = tempSong.filename.match(/([+-]\d+key|[+-]\d+|���L�[|�L�[�ύX)/i);
+            if (tempSong.version === '通常音源' || !tempSong.version) {
+              const keyMatch = tempSong.filename.match(/([+-]\d+key|[+-]\d+|原キー|キー変更)/i);
               if (keyMatch) {
                 tempSong.version = keyMatch[0];
                 updated = true;
@@ -536,20 +536,20 @@
             }
           };
 
-          // ���ݒ�̕ύX���ۑ�
+          // 環境設定の変更＆保存
           const updateAppSetting = async (key, value) => {
             const updatedSettings = { ...settings, [key]: value };
             setSettings(updatedSettings);
             await saveToDB(STORE_SETTINGS, { key, value });
           };
 
-          // �X�}�z�p�y�ʃt�@�C������ �� IndexedDB���t�@�C���L���b�V��
+          // スマホ用軽量ファイル同期 ＆ IndexedDB実ファイルキャッシュ
           const handleMultipleFilesSelect = async (e) => {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
 
             setIsSyncing(true);
-            showStatus(`${files.length}�Ȃ̃X�L�������L���b�V����...`, 'info');
+            showStatus(`${files.length}曲のスキャン＆キャッシュ中...`, 'info');
 
             const newFileMap = new Map(fileMap);
             const existingSongsMap = new Map(songs.map(s => [s.filename, s]));
@@ -571,9 +571,9 @@
                   const cleanName = filename.substring(0, filename.lastIndexOf('.'));
                   const parts = cleanName.split('_');
                   
-                  let artist = '�s���ȃA�[�e�B�X�g';
+                  let artist = '不明なアーティスト';
                   let title = cleanName;
-                  let version = '�ʏ퉹��';
+                  let version = '通常音源';
 
                   if (parts.length >= 2) {
                     artist = parts[0].trim();
@@ -588,7 +588,7 @@
                     artist,
                     title,
                     version,
-                    highestChest: '���ݒ�', 
+                    highestChest: '未設定', 
                     rating: 3, 
                     comments: '',
                     dateAdded: new Date().toISOString()
@@ -603,21 +603,21 @@
                   analyzeSongBackground(newSong);
                 }
               } catch (storageError) {
-                console.warn("DB�L���b�V���e�ʐ����̂��߁A��������Ƀ}�E���g���܂�:", storageError);
+                console.warn("DBキャッシュ容量制限のため、メモリ上にマウントします:", storageError);
               }
             }
 
             setFileMap(newFileMap);
             setSongs(updatedSongs);
             setIsSyncing(false);
-            showStatus(`${files.length}�Ȃ̉����𓯊����܂����I`, 'success');
+            showStatus(`${files.length}曲の音源を同期しました！`, 'success');
             setActiveTab('library');
           };
 
-          // �ꊇ���X�g�������ݓo�^
+          // 一括リスト流し込み登録
           const handleBulkTextImport = async () => {
             if (!bulkText.trim()) {
-              showStatus('�e�L�X�g�����͂���Ă��܂���', 'error');
+              showStatus('テキストが入力されていません', 'error');
               return;
             }
 
@@ -639,9 +639,9 @@
                 const cleanName = filename.substring(0, filename.lastIndexOf('.'));
                 const parts = cleanName.split('_');
                 
-                let artist = '�s���ȃA�[�e�B�X�g';
+                let artist = '不明なアーティスト';
                 let title = cleanName;
-                let version = '�ʏ퉹��';
+                let version = '通常音源';
 
                 if (parts.length >= 2) {
                   artist = parts[0].trim();
@@ -656,7 +656,7 @@
                   artist,
                   title,
                   version,
-                  highestChest: '���ݒ�', 
+                  highestChest: '未設定', 
                   rating: 3, 
                   comments: '',
                   dateAdded: new Date().toISOString()
@@ -672,28 +672,28 @@
             if (successCount > 0) {
               setSongs(updatedSongs);
               setBulkText('');
-              showStatus(`${successCount}�Ȃ��̏����X�g�ɐV�K�o�^���܂����I`, 'success');
+              showStatus(`${successCount}曲を歌唱リストに新規登録しました！`, 'success');
               setActiveTab('library');
             } else {
-              showStatus('���͂��ꂽ�Ȃ͂��ׂēo�^�ς݂ł�', 'info');
+              showStatus('入力された曲はすべて登録済みです', 'info');
             }
           };
 
-          // �蓮1�Ȓǉ�
+          // 手動1曲追加
           const handleSingleManualAdd = async () => {
             if (!singleManual.title.trim()) {
-              showStatus('�Ȗ�����͂��Ă�������', 'error');
+              showStatus('曲名を入力してください', 'error');
               return;
             }
 
-            const artist = singleManual.artist.trim() || '�蓮�o�^';
+            const artist = singleManual.artist.trim() || '手動登録';
             const title = singleManual.title.trim();
-            const version = singleManual.version.trim() || '�ʏ퉹��';
+            const version = singleManual.version.trim() || '通常音源';
             const filename = `${artist}_${title}_${version}.wav`;
 
             const existingSongsMap = new Map(songs.map(s => [s.filename, s]));
             if (existingSongsMap.has(filename)) {
-              showStatus('�����d�l�̋Ȃ����łɓo�^����Ă��܂�', 'error');
+              showStatus('同じ仕様の曲がすでに登録されています', 'error');
               return;
             }
 
@@ -702,7 +702,7 @@
               artist,
               title,
               version,
-              highestChest: '���ݒ�', 
+              highestChest: '未設定', 
               rating: 3, 
               comments: '',
               dateAdded: new Date().toISOString()
@@ -712,11 +712,11 @@
             await saveToDB(STORE_SONGS, newSong);
             setSongs(updated);
             setSingleManual({ title: '', artist: '', version: '' });
-            showStatus(`�u${title}�v���蓮�ǉ����܂����I`, 'success');
+            showStatus(`「${title}」を手動追加しました！`, 'success');
             setActiveTab('library');
           };
 
-          // �ŐV15�ȎZ�o����
+          // 最新15曲算出処理
           const latest15Songs = useMemo(() => {
             return [...songs]
               .filter(s => !s.isDemo)
@@ -724,7 +724,7 @@
               .slice(0, 15);
           }, [songs]);
 
-          // �y�ȃt�B���^�����O
+          // 楽曲フィルタリング
           const filteredSongs = useMemo(() => {
             let list = [];
             if (currentPlaylist === 'all') {
@@ -752,15 +752,15 @@
             return list;
           }, [songs, currentPlaylist, playlists, searchQuery, latest15Songs]);
 
-          // �����܂��͋߂��u�ގ��n�����K�v�̊y�Ȃ��Z�o���郍�W�b�N (�O��2�����ȓ�)
+          // 同じまたは近い「類似地声音階」の楽曲を算出するロジック (前後2半音以内)
           const similarPitchSongs = useMemo(() => {
-            if (!currentSong || !currentSong.highestChest || currentSong.highestChest === '���ݒ�') return [];
+            if (!currentSong || !currentSong.highestChest || currentSong.highestChest === '未設定') return [];
             
             const targetPitch = currentSong.highestChest.toLowerCase().trim();
             const targetIdx = PITCH_ORDER.indexOf(targetPitch);
             
             if (targetIdx === -1) {
-              // �e�[�u���ɂȂ�����ȕ\�L�̂��̂͊��S��v�݂̂Œ��o
+              // テーブルにない特殊な表記のものは完全一致のみで抽出
               return songs.filter(s => s.filename !== currentSong.filename && s.highestChest.toLowerCase().trim() === targetPitch);
             }
 
@@ -769,28 +769,28 @@
               const p = s.highestChest.toLowerCase().trim();
               const idx = PITCH_ORDER.indexOf(p);
               if (idx === -1) return false;
-              return Math.abs(idx - targetIdx) <= 2; // �O��2�������܂ł��s�b�N�A�b�v
+              return Math.abs(idx - targetIdx) <= 2; // 前後2半音差までをピックアップ
             });
           }, [currentSong, songs]);
 
-          // ���C�u�����^�b�v���́u�܂��ڍ׉�ʂɑJ�ځv����
+          // ライブラリタップ時は「まず詳細画面に遷移」する
           const selectSongDetail = (song) => {
             setCurrentSong(song);
             
-            // �I�𒆂̋Ȃ��ς�����ꍇ�F
+            // 選択中の曲が変わった場合：
             if (currentSong?.filename !== song.filename) {
               setIsPlaying(false);
               if (audioRef.current) {
                 audioRef.current.pause();
               }
-              // �����ŋ^���g�`���܂��u���ɃZ�b�g
+              // 高速で疑似波形をまず瞬時にセット
               generateFallbackWaveform(song.filename);
             }
-            // �Đ��^�u�i�ڍ׉�ʁj�֎����؂�ւ�
+            // 再生タブ（詳細画面）へ自動切り替え
             setActiveTab('player');
           };
 
-          // �Đ�����R�A�F�ڍ׉�ʂōĐ��{�^�������������Ɏ��ۂɍĐ��J�n����
+          // 再生制御コア：詳細画面で再生ボタンを押した時に実際に再生開始する
           const playSong = async (song) => {
             if (!song) return;
 
@@ -804,16 +804,16 @@
                     setupAudioContext();
                     updateMediaSession(song);
                   })
-                  .catch(() => showStatus("��ʂ��^�b�v���Ď����Đ����������Ă�������", "info"));
+                  .catch(() => showStatus("画面をタップして自動再生を解除してください", "info"));
               }
               return;
             }
 
             let file = fileMap.get(song.filename);
             
-            // �N���E�h���玩���擾�i�����_�E�����[�h�j�����݂�
+            // クラウドから自動取得（自動ダウンロード）を試みる
             if (!file && settings.cloudBaseUrl) {
-              showStatus("�N���E�h���特���������_�E�����[�h��...", "info");
+              showStatus("クラウドから音源を自動ダウンロード中...", "info");
               try {
                 let base = settings.cloudBaseUrl;
                 if (!base.endsWith('/')) base += '/';
@@ -821,7 +821,7 @@
                 const targetUrl = base + encodeURIComponent(song.filename);
                 const response = await fetch(targetUrl);
                 
-                if (!response.ok) throw new Error("�N���E�h�����̎擾�Ɏ��s���܂���");
+                if (!response.ok) throw new Error("クラウド音源の取得に失敗しました");
                 const audioBlob = await response.blob();
                 
                 file = new File([audioBlob], song.filename, { type: audioBlob.type });
@@ -838,13 +838,13 @@
                       setSongs(prev => prev.map(s => s.filename === song.filename ? { ...s, fileBlob: file } : s));
                     }
                   } catch (e) {
-                    console.warn("���[�J��DB�i�����G���[:", e);
+                    console.warn("ローカルDB永続化エラー:", e);
                   }
                 }
-                showStatus("�_�E�����[�h���ꎞ�}�E���g�����I", "success");
+                showStatus("ダウンロード＆一時マウント成功！", "success");
               } catch (err) {
                 console.error("Cloud Fetch Error:", err);
-                showStatus("�����_�E�����[�h�Ɏ��s�B���[�J������w�肵�Ă��������B", "error");
+                showStatus("自動ダウンロードに失敗。ローカルから指定してください。", "error");
               }
             }
 
@@ -874,7 +874,7 @@
                 })
                 .catch(err => {
                   console.error("Play Error:", err);
-                  showStatus("�Đ��G���[�B������x�^�b�v���Ă��������B", "error");
+                  showStatus("再生エラー。もう一度タップしてください。", "error");
                 });
             }
           };
@@ -895,12 +895,12 @@
                 setSongs(prev => prev.map(s => s.filename === unresolvedSong.filename ? { ...s, fileBlob: file } : s));
               }
             } catch (err) {
-              console.warn("DB�ʃL���b�V���̕ۑ����s:", err);
+              console.warn("DB個別キャッシュの保存失敗:", err);
             }
 
             const targetSong = unresolvedSong;
             setUnresolvedSong(null);
-            showStatus("�}�E���g�����I�Đ��\�ł��B", "success");
+            showStatus("マウント完了！再生可能です。", "success");
             
             setTimeout(() => {
               playSong(targetSong);
@@ -917,7 +917,7 @@
 
             if (!audioRef.current) return;
 
-            // ���[�h����Ă��Ȃ��ꍇ�́A���ۂɃ}�E���g�E�擾���ĊJ�n
+            // ロードされていない場合は、実際にマウント・取得して開始
             if (audioRef.current.src === "" || audioRef.current.src.indexOf('SoundHelix') === -1 && !fileMap.has(currentSong.filename) && !settings.cloudBaseUrl) {
               playSong(currentSong);
               return;
@@ -932,7 +932,7 @@
                   setIsPlaying(true);
                   setupAudioContext();
                 })
-                .catch(() => showStatus("��ʂ��^�b�v���čĐ����Ă�������", "info"));
+                .catch(() => showStatus("画面をタップして再生してください", "info"));
             }
           };
 
@@ -1061,7 +1061,7 @@
               ctx.fillStyle = 'rgba(244, 63, 94, 0.5)';
               ctx.font = 'bold 15px sans-serif';
               ctx.textAlign = 'center';
-              ctx.fillText('�Đ�����Ɣg�`���\������܂�', width / 2, height / 2 + 5);
+              ctx.fillText('再生すると波形が表示されます', width / 2, height / 2 + 5);
             }
 
             animationFrameRef.current = requestAnimationFrame(animateWave);
@@ -1119,9 +1119,9 @@
                 setCurrentSong(dataToSave);
               }
               setIsEditModalOpen(false);
-              showStatus(`�u${editingSong.title}�v���A�b�v�f�[�g�I`, 'success');
+              showStatus(`「${editingSong.title}」をアップデート！`, 'success');
             } catch (err) {
-              showStatus('�ۑ��ł��܂���ł���', 'error');
+              showStatus('保存できませんでした', 'error');
             }
           };
 
@@ -1136,7 +1136,7 @@
             setPlaylists([...playlists, newPl]);
             setNewPlaylistName('');
             setIsPlaylistModalOpen(false);
-            showStatus(`�v���C���X�g�u${newPl.name}�v���쐬���܂����I`, 'success');
+            showStatus(`プレイリスト「${newPl.name}」を作成しました！`, 'success');
           };
 
           const toggleSongInPlaylist = async (playlistId, filename) => {
@@ -1146,10 +1146,10 @@
             let updatedFilenames;
             if (targetPl.songFilenames.includes(filename)) {
               updatedFilenames = targetPl.songFilenames.filter(f => f !== filename);
-              showStatus('�v���C���X�g���珜�O���܂���', 'info');
+              showStatus('プレイリストから除外しました', 'info');
             } else {
               updatedFilenames = [...targetPl.songFilenames, filename];
-              showStatus('�v���C���X�g�֒ǉ����܂����I', 'success');
+              showStatus('プレイリストへ追加しました！', 'success');
             }
 
             const updatedPl = { ...targetPl, songFilenames: updatedFilenames };
@@ -1160,13 +1160,13 @@
           const deletePlaylist = async (playlistId, e) => {
             e.stopPropagation();
             if (playlistId === 'fav' || playlistId === 'practice') {
-              showStatus('�W�����X�g�͍폜�s�\�ł�', 'error');
+              showStatus('標準リストは削除不可能です', 'error');
               return;
             }
             await deleteFromDB(STORE_PLAYLISTS, playlistId);
             setPlaylists(playlists.filter(p => p.id !== playlistId));
             if (currentPlaylist === playlistId) setCurrentPlaylist('all');
-            showStatus('�v���C���X�g���폜���܂���', 'info');
+            showStatus('プレイリストを削除しました', 'info');
           };
 
           const exportDatabase = () => {
@@ -1182,7 +1182,7 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            showStatus("�̏��f�[�^���G�N�X�|�[�g�����I", "success");
+            showStatus("歌唱データをエクスポート完了！", "success");
           };
 
           const importDatabase = (e) => {
@@ -1206,9 +1206,9 @@
                   }
                   setPlaylists(parsed.playlists);
                 }
-                showStatus("�̏����X�g�����𕜌��E�������܂����I", "success");
+                showStatus("歌唱リスト＆情報を復元・同期しました！", "success");
               } catch (err) {
-                showStatus("JSON��̓G���[", "error");
+                showStatus("JSON解析エラー", "error");
               }
             };
             if (e.target.files[0]) {
@@ -1223,7 +1223,7 @@
             return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
           };
 
-          // �ʉ����L���b�V���폜
+          // 個別音源キャッシュ削除
           const handleClearSongCache = async (song, e) => {
             e.stopPropagation();
             const record = await getFromDB(STORE_SONGS, song.filename);
@@ -1239,13 +1239,13 @@
               if (currentSong?.filename === song.filename) {
                 setCurrentSong(prev => ({ ...prev, fileBlob: undefined }));
               }
-              showStatus(`�u${song.title}�v�̉����L���b�V�����N���A���܂���`, 'info');
+              showStatus(`「${song.title}」の音源キャッシュをクリアしました`, 'info');
             }
           };
 
-          // �S�L���b�V���폜 (UI�ŎQ�Ƃ���Ă���L�[�t�@���N�V����)
+          // 全キャッシュ削除 (UIで参照されているキーファンクション)
           const handleClearAllCaches = async () => {
-            if (!confirm("�ۑ�����Ă��邷�ׂĂ̎������t�@�C���L���b�V�����폜���܂����H(�ō�����R�����g�̃e�L�X�g�f�[�^�͍폜����܂���)")) {
+            if (!confirm("保存されているすべての実音声ファイルキャッシュを削除しますか？(最高音やコメントのテキストデータは削除されません)")) {
               return;
             }
             const savedSongs = await getAllFromDB(STORE_SONGS);
@@ -1257,11 +1257,11 @@
             }
             setFileMap(new Map());
             setSongs(savedSongs.map(s => { delete s.fileBlob; return s; }));
-            showStatus("���ׂẲ����L���b�V�����N���A���܂���", "info");
+            showStatus("すべての音声キャッシュをクリアしました", "info");
           };
 
           return (
-            /* ��Έʒu fixed inset-0 �ɂ��A�X�}�z�̏㉺�o�[�L�k�ɔ����\��������Ƃ͂ݏo�������S�h�� */
+            /* 絶対位置 fixed inset-0 により、スマホの上下バー伸縮に伴う表示ちぎれとはみ出しを完全防御 */
             <div className="fixed inset-0 h-[100dvh] flex flex-col justify-between bg-neutral-950 text-neutral-100 font-sans overflow-hidden select-none">
               
               <audio 
@@ -1273,7 +1273,7 @@
               />
 
               {/* ==========================================
-                  �w�b�_�[ (���S�E�C���t�H)
+                  ヘッダー (ロゴ・インフォ)
                   ========================================== */}
               <header className="flex-shrink-0 border-b border-neutral-900 bg-neutral-950 px-4 py-2 flex items-center justify-between z-30">
                 <div className="flex items-center gap-2">
@@ -1282,7 +1282,7 @@
                     <h1 className="text-lg font-black tracking-widest text-rose-500 flex items-center gap-1.5">
                       UTA-ARCHIVE <span className="text-[10px] bg-rose-600 text-white font-extrabold px-1.5 py-0.5 rounded">MOBILE</span>
                     </h1>
-                    <p className="text-xs text-neutral-400 font-bold">�I�� �� �̐��L�[�f�[�^�x�[�X</p>
+                    <p className="text-xs text-neutral-400 font-bold">選曲 ＆ 歌声キーデータベース</p>
                   </div>
                 </div>
 
@@ -1304,7 +1304,7 @@
               </header>
 
               {/* ==========================================
-                  �w�b�_�[�����̃X�}�z�p�㕔�i�r�Q�[�V����
+                  ヘッダー直下のスマホ用上部ナビゲーション
                   ========================================== */}
               <nav className="flex-shrink-0 border-b border-neutral-900 bg-neutral-900/40 grid grid-cols-3 text-center z-30">
                 <button 
@@ -1314,7 +1314,7 @@
                   }`}
                 >
                   <SvgIcon name="music" className="w-5 h-5" />
-                  <span>�Đ����</span>
+                  <span>再生画面</span>
                 </button>
 
                 <button 
@@ -1324,7 +1324,7 @@
                   }`}
                 >
                   <SvgIcon name="listMusic" className="w-5 h-5" />
-                  <span>���C�u����</span>
+                  <span>ライブラリ</span>
                 </button>
 
                 <button 
@@ -1334,16 +1334,16 @@
                   }`}
                 >
                   <SvgIcon name="folderOpen" className="w-5 h-5" />
-                  <span>�o�^ / ����</span>
+                  <span>登録 / 同期</span>
                 </button>
               </nav>
 
               {/* ==========================================
-                  ���C���X�N���[���G���A
+                  メインスクロールエリア
                   ========================================== */}
               <main className="flex-1 overflow-hidden relative bg-neutral-950">
                 
-                {/* TAB 1: PLAYER (���ʍĐ��\��) */}
+                {/* TAB 1: PLAYER (大画面再生表示) */}
                 <div className={`absolute inset-0 p-4 flex flex-col justify-between overflow-y-auto smooth-scroll transition-transform duration-300 ${
                   activeTab === 'player' ? 'translate-x-0' : '-translate-x-full pointer-events-none'
                 }`}>
@@ -1352,7 +1352,7 @@
                     {currentSong ? (
                       <div className="text-center w-full max-w-sm space-y-5">
                         
-                        {/* �̏��A������L�����N�^�[�\�� */}
+                        {/* 歌唱連動特大キャラクター表示 */}
                         <div className="relative mx-auto w-44 h-44 flex items-center justify-center bg-neutral-900/60 rounded-3xl border border-neutral-800 p-4 shadow-2xl">
                           <CharacterMascot className="w-36 h-36" mood={mascotMood} isPlaying={isPlaying} />
                         </div>
@@ -1368,26 +1368,26 @@
                           </span>
                           {currentSong.isDemo && (
                             <span className="px-3.5 py-1.5 bg-amber-950 text-sm text-amber-400 rounded-full border border-amber-900 font-bold">
-                              �f������
+                              デモ音源
                             </span>
                           )}
                           {fileMap.has(currentSong.filename) && (
                             <span className="px-3.5 py-1.5 bg-emerald-950/80 text-emerald-400 text-sm rounded-full border border-emerald-900/40 font-bold">
-                              �X�}�z���ێ�
+                              スマホ内保持
                             </span>
                           )}
                         </div>
 
-                        {/* ����E�̏��X�^�b�c�\�� */}
+                        {/* 特大・歌唱スタッツ表示 */}
                         <div className="bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800 shadow-inner max-w-xs mx-auto">
-                          <span className="text-xs text-rose-400 font-black block tracking-widest mb-1">?? �n���ō���</span>
-                          <span className="text-3xl font-black text-white font-mono tracking-tight">{currentSong.highestChest || '���ݒ�'}</span>
+                          <span className="text-xs text-rose-400 font-black block tracking-widest mb-1">?? 地声最高音</span>
+                          <span className="text-3xl font-black text-white font-mono tracking-tight">{currentSong.highestChest || '未設定'}</span>
                         </div>
 
-                        {/* �ގ��n�����K�̊y�ȃV���[�g�J�b�g */}
+                        {/* 類似地声音階の楽曲ショートカット */}
                         {similarPitchSongs.length > 0 && (
                           <div className="bg-neutral-900/40 p-3 rounded-2xl border border-neutral-900 text-left space-y-2">
-                            <span className="text-xs text-neutral-400 font-black block">?? ���̋ȂƁu�߂�����v�̎����� ({similarPitchSongs.length}��):</span>
+                            <span className="text-xs text-neutral-400 font-black block">?? この曲と「近い音域」の持ち歌 ({similarPitchSongs.length}曲):</span>
                             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                               {similarPitchSongs.slice(0, 8).map(song => (
                                 <button
@@ -1405,7 +1405,7 @@
 
                         {currentSong.comments && (
                           <div className="text-left text-sm text-neutral-200 bg-neutral-900/50 p-4 rounded-xl border border-neutral-900/50 leading-relaxed font-bold">
-                            ?? �̏�����:<br/>
+                            ?? 歌唱メモ:<br/>
                             <span className="text-neutral-300 font-medium text-xs mt-1 block">{currentSong.comments}</span>
                           </div>
                         )}
@@ -1414,24 +1414,24 @@
                     ) : (
                       <div className="text-center py-12 px-6">
                         <CharacterMascot className="w-36 h-36 mx-auto opacity-35" mood="idle" />
-                        <h3 className="text-base font-bold text-neutral-400 mt-4">�Đ�����Ȃ�I�����Ă�������</h3>
+                        <h3 className="text-base font-bold text-neutral-400 mt-4">再生する曲を選択してください</h3>
                         <p className="text-sm text-neutral-600 mt-2 max-w-xs mx-auto leading-relaxed">
-                          �ׂ́u���C�u�����v���^�b�v���ċȂ̏ڍׂ��m�F���A��������傫�ȍĐ��{�^���������ė��K���J�n���܂��B
+                          隣の「ライブラリ」をタップして曲の詳細を確認し、そこから大きな再生ボタンを押して練習を開始します。
                         </p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* TAB 2: LIBRARY (�ȃ��X�g�E�����E�v���C���X�g) */}
+                {/* TAB 2: LIBRARY (曲リスト・検索・プレイリスト) */}
                 <div className={`absolute inset-0 flex flex-col bg-neutral-950 transition-transform duration-300 ${
                   activeTab === 'library' ? 'translate-x-0' : 'translate-x-full pointer-events-none'
                 }`}>
                   
-                  {/* ���X�g�Œ�㕔�G���A */}
+                  {/* リスト固定上部エリア */}
                   <div className="p-3 border-b border-neutral-900 bg-neutral-950 space-y-2.5 flex-shrink-0">
                     
-                    {/* �v���C���X�g�؂�ւ� */}
+                    {/* プレイリスト切り替え */}
                     <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                       <button 
                         onClick={() => setCurrentPlaylist('all')} 
@@ -1439,7 +1439,7 @@
                           currentPlaylist === 'all' ? 'bg-rose-500 text-neutral-950 shadow-md shadow-rose-500/10' : 'bg-neutral-900 text-neutral-400'
                         }`}
                       >
-                        ���ׂ� ({songs.length})
+                        すべて ({songs.length})
                       </button>
                       <button 
                         onClick={() => setCurrentPlaylist('latest15')} 
@@ -1447,7 +1447,7 @@
                           currentPlaylist === 'latest15' ? 'bg-cyan-500 text-neutral-950 shadow-md shadow-cyan-500/10' : 'bg-neutral-900 text-neutral-400'
                         }`}
                       >
-                        ?? �ŐV15�� ({latest15Songs.length})
+                        ?? 最新15曲 ({latest15Songs.length})
                       </button>
                       {playlists.map(pl => (
                         <button
@@ -1465,11 +1465,11 @@
                         onClick={() => setIsPlaylistModalOpen(true)}
                         className="px-3.5 py-2 rounded-full text-xs bg-neutral-900 text-neutral-500 border border-neutral-800 flex items-center gap-1 font-bold"
                       >
-                        <SvgIcon name="plus" className="w-4 h-4" /> �쐬
+                        <SvgIcon name="plus" className="w-4 h-4" /> 作成
                       </button>
                     </div>
 
-                    {/* �������� */}
+                    {/* 検索入力 */}
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-neutral-400">
                         <SvgIcon name="search" className="w-5 h-5" />
@@ -1478,7 +1478,7 @@
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="�Ȗ��E�̎薼�E�ō����E�R�����g���猟��..." 
+                        placeholder="曲名・歌手名・最高音・コメントから検索..." 
                         className="w-full pl-10 pr-9 py-2.5 bg-neutral-900 border border-neutral-900 rounded-xl focus:outline-none focus:ring-1 focus:ring-rose-500 text-sm placeholder:text-neutral-500 text-white font-bold"
                       />
                       {searchQuery && (
@@ -1490,7 +1490,7 @@
 
                   </div>
 
-                  {/* �Ɨ��X�N���[���ȃ��X�g (�^�b�v�ŏڍ׉�ʂ֑J��) */}
+                  {/* 独立スクロール曲リスト (タップで詳細画面へ遷移) */}
                   <div className="flex-1 overflow-y-auto divide-y divide-neutral-900 bg-neutral-950/30 smooth-scroll">
                     {filteredSongs.length > 0 ? (
                       filteredSongs.map((song, idx) => {
@@ -1508,32 +1508,32 @@
                           >
                             <div className="min-w-0 flex-1 flex items-center gap-3.5">
                               
-                              {/* �ԍ� */}
+                              {/* 番号 */}
                               <div className="flex-shrink-0 w-6 flex justify-center">
                                 <div className="text-sm font-mono font-black text-neutral-500">
                                   {idx + 1}
                                 </div>
                               </div>
 
-                              {/* �^�C�g���� */}
+                              {/* タイトル等 */}
                               <div className="min-w-0 flex-1 space-y-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <p className={`text-base font-black truncate leading-tight ${isSelected ? 'text-rose-400' : 'text-neutral-100'}`}>
                                     {song.title}
                                   </p>
                                   {song.isDemo ? (
-                                    <span className="text-[9px] font-bold bg-amber-950/80 border border-amber-800 text-amber-400 px-1 py-0.2 rounded">�f��</span>
+                                    <span className="text-[9px] font-bold bg-amber-950/80 border border-amber-800 text-amber-400 px-1 py-0.2 rounded">デモ</span>
                                   ) : fileLoaded ? (
                                     <span className="text-[9px] font-black bg-emerald-950/90 border border-emerald-900 text-emerald-400 px-1.5 py-0.2 rounded">
-                                      �ۑ���
+                                      保存済
                                     </span>
                                   ) : hasCloudOption ? (
                                     <span className="text-[9px] font-black bg-sky-950/90 border border-sky-900 text-sky-400 px-1.5 py-0.2 rounded">
-                                      �N���E�h
+                                      クラウド
                                     </span>
                                   ) : (
                                     <span className="text-[9px] font-black bg-neutral-900 border border-rose-950 text-rose-400/90 px-1.5 py-0.2 rounded tracking-tight">
-                                      ������
+                                      未同期
                                     </span>
                                   )}
                                 </div>
@@ -1543,13 +1543,13 @@
                               </div>
                             </div>
 
-                            {/* �E���F�ō����K�o�b�W�̂� */}
+                            {/* 右側：最高音階バッジのみ */}
                             <div className="flex items-center gap-3 flex-shrink-0 ml-2">
                               <div className="text-xs font-mono font-black px-2.5 py-1 bg-rose-950/40 text-rose-300 rounded-lg border border-rose-900/30">
-                                {song.highestChest || '���ݒ�'}
+                                {song.highestChest || '未設定'}
                               </div>
 
-                              {/* �ҏW */}
+                              {/* 編集 */}
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1567,26 +1567,26 @@
                     ) : (
                       <div className="text-center py-20 text-neutral-600">
                         <SvgIcon name="music" className="w-14 h-14 mx-auto mb-2 opacity-25" />
-                        <p className="text-base font-bold">�Ώۂ̊y�Ȃ͂���܂���</p>
+                        <p className="text-base font-bold">対象の楽曲はありません</p>
                       </div>
                     )}
                   </div>
                   
                 </div>
 
-                {/* TAB 3: INPUT_DATA (���� �� �V�K�蓮�o�^ �� �L���b�V�����ݒ�) */}
+                {/* TAB 3: INPUT_DATA (同期 ＆ 新規手動登録 ＆ キャッシュ環境設定) */}
                 <div className={`absolute inset-0 p-4 overflow-y-auto smooth-scroll bg-neutral-950 space-y-5 transition-transform duration-300 ${
                   activeTab === 'input_data' ? 'translate-x-0' : 'translate-x-full pointer-events-none'
                 }`}>
                   
-                  {/* �V�݁F1. �N���E�h�x�[�XURL���������ݒ� */}
+                  {/* 新設：1. クラウドベースURL自動同期設定 */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                       <SvgIcon name="settings" className="text-rose-500" />
-                      �N���E�h�����擾�i�x�[�XURL�j�̐ݒ�
+                      クラウド自動取得（ベースURL）の設定
                     </h3>
                     <p className="text-[12px] text-neutral-400 leading-relaxed">
-                      GitHub Pages�⋤�L�T�[�o�[�̃x�[�XURL��ݒ肵�܂��B�o�^����ƁA�����[�h��ł�URL���特���������ŃX�}�z�Ƀ��[�h���đ����ɍĐ��ł���悤�ɂȂ�܂��I
+                      GitHub Pagesや共有サーバーのベースURLを設定します。登録すると、リロード後でもURLから音源を自動でスマホにロードして即座に再生できるようになります！
                     </p>
 
                     <div className="space-y-2">
@@ -1594,16 +1594,16 @@
                         type="url" 
                         value={settings.cloudBaseUrl}
                         onChange={(e) => updateAppSetting('cloudBaseUrl', e.target.value)}
-                        placeholder="https://raw.githubusercontent.com/[���[�U�[��]/[���|�W�g��]/main/songs/" 
+                        placeholder="https://raw.githubusercontent.com/[ユーザー名]/[リポジトリ]/main/songs/" 
                         className="w-full p-3 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 font-mono"
                       />
                       <p className="text-[11px] text-neutral-500">
-                        ����LURL of �N���E�h�z���Ɂu�A�[�e�B�X�g��_�Ȗ�_�o�[�W����.wav�v���z�u����Ă���K�v������܂��B
+                        ※上記URL of クラウド配下に「アーティスト名_曲名_バージョン.wav」が配置されている必要があります。
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-1 border-t border-neutral-850/40">
-                      <span className="text-xs font-bold text-neutral-300">�����̃u���E�U�i���L���b�V��</span>
+                      <span className="text-xs font-bold text-neutral-300">音源のブラウザ永続キャッシュ</span>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
                           type="checkbox" 
@@ -1616,14 +1616,14 @@
                     </div>
                   </div>
 
-                  {/* �V�݁F2. �������̓��� (�����I���}�E���g �� �u���E�U�L���b�V��) */}
+                  {/* 新設：2. 実音源の同期 (複数選択マウント ＆ ブラウザキャッシュ) */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-2.5">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                       <SvgIcon name="folderOpen" className="text-cyan-400" />
-                      �����t�@�C���̓��� �� �u���E�U�i����
+                      音源ファイルの同期 ＆ ブラウザ永続化
                     </h3>
                     <p className="text-[12px] text-neutral-400 leading-relaxed">
-                      iCloud/OneDrive/Google Drive����WAV��MP3�t�@�C���𕡐��w�肵�ăA�v���Ɏ�荞�݂܂��B�������̓u���E�U�̃Z�[�t�f�[�^�x�[�X�ɃL���b�V���ۑ�����܂��B
+                      iCloud/OneDrive/Google Drive等のWAVやMP3ファイルを複数指定してアプリに取り込みます。実音源はブラウザのセーフデータベースにキャッシュ保存されます。
                     </p>
 
                     <div className="space-y-2">
@@ -1631,12 +1631,12 @@
                         {isSyncing ? (
                           <>
                             <SvgIcon name="refreshCw" className="w-5 h-5 animate-spin" />
-                            <span>���� �� �L���b�V����...</span>
+                            <span>同期 ＆ キャッシュ中...</span>
                           </>
                         ) : (
                           <>
                             <SvgIcon name="fileAudio" className="w-5 h-5" />
-                            <span>������I�����ē����ۑ�����</span>
+                            <span>音源を選択して同期保存する</span>
                           </>
                         )}
                         <input 
@@ -1653,20 +1653,20 @@
                         onClick={handleClearAllCaches}
                         className="w-full py-2.5 bg-neutral-950 text-rose-400 hover:text-rose-300 font-bold rounded-xl text-xs transition-colors border border-rose-950/40"
                       >
-                        ���ׂẲ����L���b�V���iBlob�f�[�^�j��S�폜
+                        すべての音声キャッシュ（Blobデータ）を全削除
                       </button>
                     </div>
                   </div>
 
-                  {/* 3. �e�L�X�g�ꊇ�������ݓo�^�p�l�� */}
+                  {/* 3. テキスト一括流し込み登録パネル */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <div className="space-y-1">
                       <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                         <SvgIcon name="listMusic" className="text-rose-400" />
-                        �t�@�C�������X�g����Ȃ��ꊇ�o�^
+                        ファイル名リストから曲を一括登録
                       </h3>
                       <p className="text-[12px] text-neutral-400 leading-relaxed">
-                        ���莝����300�Ȃ̃t�@�C�����ꗗ�����s��؂�œ\��t���邾���ŁA��x�Ƀf�[�^�x�[�X�ɃC���|�[�g����܂��B
+                        お手持ちの300曲のファイル名一覧を改行区切りで貼り付けるだけで、一度にデータベースにインポートされます。
                       </p>
                     </div>
 
@@ -1674,7 +1674,7 @@
                       value={bulkText}
                       onChange={(e) => setBulkText(e.target.value)}
                       rows={4}
-                      placeholder="��:&#13;�A�[�e�B�X�g��_�Ȗ�_�o�[�W����&#13;Ado_�V����_OriginalKey&#13;�ĒÌ��t_Lemon_Key-2"
+                      placeholder="例:&#13;アーティスト名_曲名_バージョン&#13;Ado_新時代_OriginalKey&#13;米津玄師_Lemon_Key-2"
                       className="w-full p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 font-mono leading-relaxed"
                     />
 
@@ -1682,15 +1682,15 @@
                       onClick={handleBulkTextImport}
                       className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-black rounded-xl text-xs transition-colors border border-neutral-700"
                     >
-                      �ꊇ���X�g�o�^�����s
+                      一括リスト登録を実行
                     </button>
                   </div>
 
-                  {/* 4. 1�Ȏ蓮�o�^ */}
+                  {/* 4. 1曲手動登録 */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                       <SvgIcon name="plus" className="text-amber-400" />
-                      1�Ȃ��蓮�ŐV�K�o�^
+                      1曲ずつ手動で新規登録
                     </h3>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -1698,14 +1698,14 @@
                         type="text"
                         value={singleManual.title}
                         onChange={(e) => setSingleManual({ ...singleManual, title: e.target.value })}
-                        placeholder="�Ȗ� (�K�{)"
+                        placeholder="曲名 (必須)"
                         className="p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500"
                       />
                       <input
                         type="text"
                         value={singleManual.artist}
                         onChange={(e) => setSingleManual({ ...singleManual, artist: e.target.value })}
-                        placeholder="�A�[�e�B�X�g��"
+                        placeholder="アーティスト名"
                         className="p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500"
                       />
                     </div>
@@ -1713,7 +1713,7 @@
                       type="text"
                       value={singleManual.version}
                       onChange={(e) => setSingleManual({ ...singleManual, version: e.target.value })}
-                      placeholder="�o�[�W���� (��: OriginalKey, +2key �Ȃ�)"
+                      placeholder="バージョン (例: OriginalKey, +2key など)"
                       className="w-full p-2.5 bg-neutral-950 border border-neutral-850 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500"
                     />
 
@@ -1721,19 +1721,19 @@
                       onClick={handleSingleManualAdd}
                       className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-black rounded-xl text-xs transition-colors border border-neutral-700"
                     >
-                      �蓮�o�^���m��
+                      手動登録を確定
                     </button>
                   </div>
 
-                  {/* 5. �f�[�^�x�[�X�̃C���|�[�g���G�N�X�|�[�g */}
+                  {/* 5. データベースのインポート＆エクスポート */}
                   <div className="bg-neutral-900/50 p-4 rounded-2xl border border-neutral-900 space-y-3.5">
                     <div>
                       <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                         <SvgIcon name="database" className="text-purple-400" />
-                        �̏������f�[�^�x�[�X�̃o�b�N�A�b�v
+                        歌唱メモデータベースのバックアップ
                       </h3>
                       <p className="text-[12px] text-neutral-400">
-                        �ō����⎩�ȕ]�������iJSON�j�݂̂��y�ʃG�N�X�|�[�g�A�܂��̓C���|�[�g���ĕ����ł��܂��B
+                        最高音や自己評価メモ（JSON）のみを軽量エクスポート、またはインポートして復元できます。
                       </p>
                     </div>
 
@@ -1743,11 +1743,11 @@
                         className="flex items-center justify-center gap-1.5 py-2.5 bg-neutral-800 hover:bg-neutral-750 rounded-xl text-xs font-bold text-white transition-colors"
                       >
                         <SvgIcon name="download" className="w-4 h-4 text-rose-500" />
-                        <span>�G�N�X�|�[�g</span>
+                        <span>エクスポート</span>
                       </button>
                       <label className="flex items-center justify-center gap-1.5 py-2.5 bg-neutral-800 hover:bg-neutral-750 rounded-xl text-xs font-bold text-white cursor-pointer transition-colors">
                         <SvgIcon name="upload" className="w-4 h-4 text-cyan-400" />
-                        <span>�C���|�[�g</span>
+                        <span>インポート</span>
                         <input type="file" accept=".json" onChange={importDatabase} className="hidden" />
                       </label>
                     </div>
@@ -1758,16 +1758,16 @@
               </main>
 
               {/* ==========================================
-                  �ŉ����F�풓�^�~�j�v���[���[ �� �N�C�b�N�Đ�
+                  最下部：常駐型ミニプレーヤー ＆ クイック再生
                   ========================================== */}
               <div className="flex-shrink-0 border-t border-neutral-900 bg-neutral-950 p-3.5 space-y-3.5 z-40">
                 
-                {/* ���A���^�C���g�` �� �V�[�N�L�����o�X */}
+                {/* リアルタイム波形 ＆ シークキャンバス */}
                 <div className="relative">
                   {isDecodingWaveform ? (
                     <div className="w-full h-14 bg-neutral-900/50 rounded-xl flex items-center justify-center text-xs text-rose-400 gap-2 border border-neutral-900">
                       <SvgIcon name="refreshCw" className="w-5 h-5 animate-spin text-rose-500" />
-                      <span className="font-mono text-xs font-bold tracking-wider">�g�`�f�R�[�h��...</span>
+                      <span className="font-mono text-xs font-bold tracking-wider">波形デコード中...</span>
                     </div>
                   ) : (
                     <canvas 
@@ -1783,10 +1783,10 @@
                   </div>
                 </div>
 
-                {/* �~�j�v���C���[�R���g���[�� */}
+                {/* ミニプレイヤーコントロール */}
                 <div className="flex items-center justify-between gap-3">
                   
-                  {/* ���݂̋ȏ��\�� */}
+                  {/* 現在の曲情報表示 */}
                   <div className="min-w-0 flex-1">
                     {currentSong ? (
                       <div onClick={() => setActiveTab('player')} className="cursor-pointer space-y-0.5">
@@ -1798,13 +1798,13 @@
                       </div>
                     ) : (
                       <div>
-                        <h4 className="text-xs font-bold text-neutral-500">�Ȃ���~��</h4>
-                        <p className="text-[10px] text-neutral-600 font-bold">���C�u��������Ȃ�I��</p>
+                        <h4 className="text-xs font-bold text-neutral-500">曲が停止中</h4>
+                        <p className="text-[10px] text-neutral-600 font-bold">ライブラリから曲を選択</p>
                       </div>
                     )}
                   </div>
 
-                  {/* �v���C���[���S�{�^�� */}
+                  {/* プレイヤー中心ボタン */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button 
                       onClick={() => setIsShuffle(!isShuffle)}
@@ -1849,7 +1849,7 @@
               </div>
 
               {/* ==========================================
-                  �������t�@�C���}�E���g��U���[�_��
+                  未同期ファイルマウント補填モーダル
                   ========================================== */}
               {unresolvedSong && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -1859,27 +1859,27 @@
                       <CharacterMascot className="w-24 h-24 mx-auto animate-pulse" mood="angry" />
                       
                       <div className="space-y-1">
-                        <h3 className="font-extrabold text-white text-base">�����t�@�C���𓯊������Ă�������</h3>
+                        <h3 className="font-extrabold text-white text-base">音声ファイルを同期させてください</h3>
                         <p className="text-[12px] text-neutral-400 leading-relaxed">
-                          �u{unresolvedSong.title}�v���Đ����邽�߂̉����t�@�C����������܂���B
+                          「{unresolvedSong.title}」を再生するための音源ファイルが見つかりません。
                         </p>
                       </div>
 
                       <div className="p-3 bg-neutral-950 rounded-xl text-[11px] text-neutral-400 font-mono break-all text-left border border-neutral-900/80 leading-normal">
-                        ���҂���t�@�C����:<br/>
+                        期待するファイル名:<br/>
                         <span className="text-rose-400 font-bold">{unresolvedSong.filename}</span>
                       </div>
 
                       <div className="space-y-2 pt-2">
                         {!settings.cloudBaseUrl && (
                           <p className="text-[11px] text-rose-300 leading-relaxed bg-rose-950/30 p-2.5 rounded-xl border border-rose-900/30 font-bold">
-                            ���u�o�^ / �����v�^�u����N���E�h�z�M�x�[�XURL��ݒ肵�Ă����ƁA���̉�ʂ��o�����Ɏ����t�F�b�`�Đ����\�ł��B
+                            ※「登録 / 同期」タブからクラウド配信ベースURLを設定しておくと、この画面を出さずに自動フェッチ再生が可能です。
                           </p>
                         )}
 
                         <label className="w-full flex items-center justify-center gap-1.5 py-3.5 bg-rose-500 text-neutral-950 text-sm font-black rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all">
                           <SvgIcon name="fileAudio" className="w-5 h-5" />
-                          <span>���[�J������t�@�C����I��ŕR�Â���</span>
+                          <span>ローカルからファイルを選んで紐づける</span>
                           <input 
                             type="file" 
                             accept=".wav,.mp3"
@@ -1892,7 +1892,7 @@
                           onClick={() => setUnresolvedSong(null)}
                           className="w-full py-2.5 bg-neutral-800 text-neutral-400 hover:text-white rounded-xl text-xs font-bold transition-all"
                         >
-                          ����
+                          閉じる
                         </button>
                       </div>
                     </div>
@@ -1901,14 +1901,14 @@
               )}
 
               {/* ==========================================
-                  �̏��f�[�^�ʕҏW���[�_�� (�����g���)
+                  歌唱データ個別編集モーダル (文字拡大版)
                   ========================================== */}
               {isEditModalOpen && editingSong && (
                 <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
                   <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-4 bg-neutral-950 border-b border-neutral-850 flex items-center justify-between">
                       <h3 className="font-bold text-sm text-rose-400 flex items-center gap-1.5">
-                        <SvgIcon name="edit3" className="w-5 h-5" /> �̏��L�^�A�b�v�f�[�g
+                        <SvgIcon name="edit3" className="w-5 h-5" /> 歌唱記録アップデート
                       </h3>
                       <button onClick={() => setIsEditModalOpen(false)} className="text-neutral-400 p-1">
                         <SvgIcon name="x" className="w-5 h-5" />
@@ -1919,7 +1919,7 @@
                       
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <label className="text-[12px] text-neutral-400 font-black block mb-1">�Ȗ�</label>
+                          <label className="text-[12px] text-neutral-400 font-black block mb-1">曲名</label>
                           <input 
                             type="text" 
                             value={editingSong.title}
@@ -1928,7 +1928,7 @@
                           />
                         </div>
                         <div>
-                          <label className="text-[12px] text-neutral-400 font-black block mb-1">�A�[�e�B�X�g��</label>
+                          <label className="text-[12px] text-neutral-400 font-black block mb-1">アーティスト名</label>
                           <input 
                             type="text" 
                             value={editingSong.artist}
@@ -1940,7 +1940,7 @@
 
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <label className="text-[12px] text-neutral-400 font-black block mb-1">�o�[�W����</label>
+                          <label className="text-[12px] text-neutral-400 font-black block mb-1">バージョン</label>
                           <input 
                             type="text" 
                             value={editingSong.version}
@@ -1949,7 +1949,7 @@
                           />
                         </div>
                         <div>
-                          <label className="text-[12px] text-rose-400 font-black block mb-1">�n���ō���</label>
+                          <label className="text-[12px] text-rose-400 font-black block mb-1">地声最高音</label>
                           <input 
                             type="text" 
                             value={editingSong.highestChest}
@@ -1960,25 +1960,25 @@
                         </div>
                       </div>
 
-                      {/* �����L���b�V���R���g���[�� */}
+                      {/* 音源キャッシュコントロール */}
                       {fileMap.has(editingSong.filename) && (
                         <div className="p-3 bg-emerald-950/20 border border-emerald-900/40 rounded-xl flex items-center justify-between">
                           <div className="min-w-0">
-                            <span className="text-[11px] text-emerald-400 font-black block">���[�J���L���b�V��</span>
-                            <span className="text-[10px] text-neutral-400 font-bold">���t�@�C���� IndexedDB �ɕۑ�����Ă��܂��B</span>
+                            <span className="text-[11px] text-emerald-400 font-black block">ローカルキャッシュ</span>
+                            <span className="text-[10px] text-neutral-400 font-bold">実ファイルは IndexedDB に保存されています。</span>
                           </div>
                           <button 
                             type="button"
                             onClick={(e) => handleClearSongCache(editingSong, e)}
                             className="px-2.5 py-1.5 bg-neutral-950 hover:bg-rose-950/20 border border-neutral-850 text-rose-400 rounded-lg text-[10px] font-bold flex-shrink-0"
                           >
-                            �N���A
+                            クリア
                           </button>
                         </div>
                       )}
 
                       <div>
-                        <label className="text-[12px] text-neutral-400 font-black block mb-1">���ȕ]���E���C�ɓ���x</label>
+                        <label className="text-[12px] text-neutral-400 font-black block mb-1">自己評価・お気に入り度</label>
                         <div className="flex gap-2 bg-neutral-950 p-2 rounded-xl border border-neutral-850 justify-center">
                           {[1, 2, 3, 4, 5].map((val) => (
                             <button 
@@ -1994,7 +1994,7 @@
                       </div>
 
                       <div>
-                        <label className="text-[12px] text-neutral-400 font-black block mb-1">�v���C���X�g�ݒ�</label>
+                        <label className="text-[12px] text-neutral-400 font-black block mb-1">プレイリスト設定</label>
                         <div className="flex flex-wrap gap-1.5">
                           {playlists.map(pl => {
                             const hasSong = pl.songFilenames.includes(editingSong.filename);
@@ -2018,13 +2018,13 @@
                       </div>
 
                       <div>
-                        <label className="text-[12px] text-neutral-400 font-black block mb-1">�̏��R�����g�E���K����</label>
+                        <label className="text-[12px] text-neutral-400 font-black block mb-1">歌唱コメント・練習メモ</label>
                         <textarea 
                           value={editingSong.comments || ''}
                           onChange={(e) => setEditingSong({ ...editingSong, comments: e.target.value })}
                           rows={3}
                           className="w-full p-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-rose-500 resize-none leading-relaxed font-semibold"
-                          placeholder="�ō����̏o���₷����L�[�ݒ�̃����Ȃ�..."
+                          placeholder="最高音の出しやすさやキー設定のメモなど..."
                         />
                       </div>
 
@@ -2035,26 +2035,26 @@
                         onClick={() => setIsEditModalOpen(false)}
                         className="px-4 py-2 bg-neutral-800 text-neutral-400 rounded-xl font-bold"
                       >
-                        ����
+                        閉じる
                       </button>
                       <button 
                         onClick={saveSongMetadata}
                         className="px-4 py-2 bg-rose-500 text-neutral-950 rounded-xl font-black shadow-md shadow-rose-500/10"
                       >
-                        �ۑ�����
+                        保存する
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* �v���C���X�g�V�K�쐬���[�_�� */}
+              {/* プレイリスト新規作成モーダル */}
               {isPlaylistModalOpen && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                   <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl">
                     <div className="p-3.5 bg-neutral-950 border-b border-neutral-850">
                       <h3 className="font-bold text-xs text-rose-400 flex items-center gap-1">
-                        <SvgIcon name="plus" className="w-3.5 h-3.5" /> �v���C���X�g�̐V�K�쐬
+                        <SvgIcon name="plus" className="w-3.5 h-3.5" /> プレイリストの新規作成
                       </h3>
                     </div>
                     <div className="p-4">
@@ -2062,7 +2062,7 @@
                         type="text" 
                         value={newPlaylistName}
                         onChange={(e) => setNewPlaylistName(e.target.value)}
-                        placeholder="�v���C���X�g�������..." 
+                        placeholder="プレイリスト名を入力..." 
                         className="w-full p-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-sm text-white focus:outline-none focus:border-rose-500 font-bold"
                       />
                     </div>
@@ -2071,26 +2071,26 @@
                         onClick={() => setIsPlaylistModalOpen(false)}
                         className="px-3.5 py-2 bg-neutral-850 text-neutral-400 rounded-xl font-bold"
                       >
-                        �L�����Z��
+                        キャンセル
                       </button>
                       <button 
                         onClick={handleCreatePlaylist}
                         className="px-3.5 py-2 bg-rose-500 text-neutral-950 rounded-xl font-black"
                       >
-                        �쐬����
+                        作成する
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* �w���v���[�_�� */}
+              {/* ヘルプモーダル */}
               {isInfoModalOpen && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                   <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
                     <div className="p-4 bg-neutral-950 border-b border-neutral-850 flex items-center justify-between">
                       <h3 className="font-bold text-sm text-rose-400 flex items-center gap-1.5">
-                        <SvgIcon name="info" className="w-4.5 h-4.5" /> �̏��A�[�J�C�u�̎g����
+                        <SvgIcon name="info" className="w-4.5 h-4.5" /> 歌唱アーカイブの使い方
                       </h3>
                       <button onClick={() => setIsInfoModalOpen(false)} className="text-neutral-400">
                         <SvgIcon name="x" className="w-5 h-5" />
@@ -2099,30 +2099,30 @@
                     
                     <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto smooth-scroll text-xs leading-relaxed text-neutral-300">
                       <div>
-                        <h4 className="font-bold text-white mb-0.5">1. �������̃u���E�U�i���L���b�V���ɂ���</h4>
+                        <h4 className="font-bold text-white mb-0.5">1. 実音源のブラウザ永続キャッシュについて</h4>
                         <p className="text-[11px] text-neutral-400 leading-normal">
-                          �u���E�U�̎d�l�ɂ��A�ʏ��Blob URL�̓����[�h�ŏ������܂��B���A�v���ł͂��̖����������邽�߁A<strong>�����������y�t�@�C����IndexedDB���ɉi���ۑ�</strong>���܂��B����Ń����[�h������S�Ƀt�@�C���R�Â����ێ�����܂��I
+                          ブラウザの仕様により、通常のBlob URLはリロードで消失します。当アプリではこの問題を解決するため、<strong>同期した音楽ファイルをIndexedDB内に永続保存</strong>します。これでリロード後も完全にファイル紐づけが維持されます！
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="font-bold text-white mb-0.5">2. �N���E�h�����擾�i�����_�E�����[�h�j</h4>
+                        <h4 className="font-bold text-white mb-0.5">2. クラウド自動取得（自動ダウンロード）</h4>
                         <p className="text-[11px] text-neutral-400 leading-normal">
-                          �u�o�^ / ���� / �ݒ�v�^�u����u�N���E�h�z�M�x�[�XURL�v��o�^���܂��BGitHub��T�[�o�[�Ɋy�ȃt�@�C�����A�b�v���[�h���Ă����A�x�[�XURL��ݒ肷�邾���ŁA�A�v����<strong>�N���E�h����y�Ȃ������Ń_�E�����[�h���L���b�V����</strong>���čĐ�����悤�ɂȂ�܂��B
+                          「登録 / 同期 / 設定」タブから「クラウド配信ベースURL」を登録します。GitHubやサーバーに楽曲ファイルをアップロードしておき、ベースURLを設定するだけで、アプリが<strong>クラウドから楽曲を自動でダウンロード＆キャッシュ化</strong>して再生するようになります。
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="font-bold text-white mb-0.5">3. �Ȃ̈ꊇ�������ݓo�^</h4>
+                        <h4 className="font-bold text-white mb-0.5">3. 曲の一括流し込み登録</h4>
                         <p className="text-[11px] text-neutral-400 leading-normal">
-                          �u�A�[�e�B�X�g��_�Ȗ�_�o�[�W�����v�̂悤�ɋL�q�������s��؂�̃e�L�X�g��\��t���邱�ƂŁA�茳�Ɏ��������Ȃ��Ă��܂�300�Ȉꊇ�ŉ̏��f�[�^�x�[�X�𐶐��\�ł��B
+                          「アーティスト名_曲名_バージョン」のように記述した改行区切りのテキストを貼り付けることで、手元に実音源がなくてもまず300曲一括で歌唱データベースを生成可能です。
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="font-bold text-white mb-0.5">4. �{���̔g�`�iPCM�f�R�[�_�[�j</h4>
+                        <h4 className="font-bold text-white mb-0.5">4. 本物の波形（PCMデコーダー）</h4>
                         <p className="text-[11px] text-neutral-400">
-                          �Đ�����1�Ȃ݂̂����A���^�C���Ƀo�b�N�O���E���h�Ńf�R�[�h���܂��B��������CPU�ւ̕��ׂ��ŏ����ɗ}���Ȃ���A���������ʃ_�C�i�~�N�X�g�`��`�悵�܂��B
+                          再生する1曲のみをリアルタイムにバックグラウンドでデコードします。メモリやCPUへの負荷を最小限に抑えながら、美しい音量ダイナミクス波形を描画します。
                         </p>
                       </div>
                     </div>
@@ -2132,7 +2132,7 @@
                         onClick={() => setIsInfoModalOpen(false)}
                         className="px-5 py-2 bg-rose-500 text-neutral-950 rounded-xl text-xs font-black transition-all"
                       >
-                        �������܂����I
+                        理解しました！
                       </button>
                     </div>
                   </div>
