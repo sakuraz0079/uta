@@ -1,46 +1,8 @@
 [
   {
-    "ファイル名": "Mr.Children_Over_Test-2.wav",
-    "ファイルID": "1WpK9NrfMaKynyYO97wx_XSmrdlqiNu82"
-  },
-  {
-    "ファイル名": "平井堅_POP STAR_Re_Mastering-3.wav",
-    "ファイルID": "1WkVCKogDfIv5Fx2iVXaprdgml-TyyiUV"
-  },
-  {
-    "ファイル名": "南佳孝_モンローウォーク_Mastering-1.wav",
-    "ファイルID": "1ozGU5FzKfQ5yxShRrB8B08UBFYpo2nGe"
-  },
-  {
-    "ファイル名": "TOKIO_花唄_Mastering-2.wav",
-    "ファイルID": "1sb3CzTmqfT23OWLMwApcjVjMDW_HXMTR"
-  },
-  {
-    "ファイル名": "杉山清貴_ふたりの夏物語_Mastering-2.wav",
-    "ファイルID": "1oZOsYlHlSZ_p_t9Ask42zioqda06xNjl"
-  },
-  {
-    "ファイル名": "ASKA_はじまりはいつも雨_Matering-2.wav",
-    "ファイルID": "1i7slaG0LVEFQkPSKzkUgwg2BSp1AhkwW"
-  },
-  {
-    "ファイル名": "ELLEGARDEN_金星_Mastering-2.wav",
-    "ファイルID": "1q_IEZVKaFRuKC8uhEY9BQZGJd_Lha7R8"
-  },
-  {
-    "ファイル名": "L'Arc-en-Ciel_Flower_Mastering-3.wav",
-    "ファイルID": "1f-g3O0d61uOFdQQSxxl3TeSWmRWTplB0"
-  },
-  {
-    "ファイル名": "たいらいさお_銀河旋風ブライガー_Mastering-3.wav",
-    "ファイルID": "1Qludx_SI6-a04b-W4DXGhtjdOEWtFbj-"
-  },
-  {
-    "ファイル名": "ORIGINAL LOVE_接吻_Mastering-1.wav",
-    "ファイルID": "1TAMCX896EVRcZgYb-bRc1n-2hLC4PYmf"
-  },
-  {
-    "ファイル名": "小椋佳_逢うたびに君は_Mastering-1.wav",
-    "ファイルID": "1aVbgknold275Wz2YPYmDbbGNQDTZEl0L"
+    "id": 1,
+    "artist": "ASKA",
+    "title": "はじまりはいつも雨",
+    "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/ASKA_%E3%81%AF%E3%81%98%E3%81%BE%E3%82%8A%E3%81%AF%E3%81%84%E3%81%A4%E3%82%82%E9%9B%A8_Matering-2.wav"
   }
 ]
