@@ -76,37 +76,46 @@
             document.getElementById('miniPlayer').classList.remove('hidden');
             document.getElementById('miniTitle').innerText = allSongs[index].title;
             document.getElementById('mainPlayBtn').innerText = '⏸';
-            setupWebAudio();
+            
+            // Web Audio の初期化を確実にする
+            if (!audioCtx) initAudioContext();
         }
 
-        function setupWebAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                const source = audioCtx.createMediaElementSource(audioPlayer);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 64;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                drawWaveform();
-            }
+        function initAudioContext() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaElementSource(audioPlayer);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 64;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            drawWaveform();
         }
 
         function drawWaveform() {
-            const canvas = document.getElementById('waveform');
-            const ctx = canvas.getContext('2d');
-            analyser.getByteFrequencyData(dataArray);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#2563eb';
-            dataArray.forEach((val, i) => {
-                ctx.fillRect(i * 5, canvas.height - (val / 255) * canvas.height, 4, (val / 255) * canvas.height);
-            });
-            requestAnimationFrame(drawWaveform);
+            if (!audioPlayer.paused) {
+                analyser.getByteFrequencyData(dataArray);
+                const canvas = document.getElementById('waveform');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#2563eb';
+                dataArray.forEach((val, i) => {
+                    ctx.fillRect(i * 5, canvas.height - (val / 255) * canvas.height, 4, (val / 255) * canvas.height);
+                });
+            }
+            animationId = requestAnimationFrame(drawWaveform);
         }
 
         function togglePlay() {
-            audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
-            document.getElementById('mainPlayBtn').innerText = audioPlayer.paused ? '▶' : '⏸';
+            if (!audioCtx) initAudioContext();
+            
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                document.getElementById('mainPlayBtn').innerText = '⏸';
+            } else {
+                audioPlayer.pause();
+                document.getElementById('mainPlayBtn').innerText = '▶';
+            }
         }
 
         function toggleShuffle() {
