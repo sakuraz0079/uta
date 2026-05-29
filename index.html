@@ -10,7 +10,7 @@
     <div class="max-w-md mx-auto p-4">
         <!-- ナビゲーション -->
         <nav class="flex gap-4 mb-6 text-sm font-bold text-gray-500 overflow-x-auto pb-2">
-            <button onclick="showScreen('listScreen')" class="whitespace-nowrap">全楽曲</button>
+            <button onclick="renderList('全楽曲')" class="whitespace-nowrap">全楽曲</button>
             <button onclick="showScreen('playlistScreen')" class="whitespace-nowrap text-blue-600">再生リスト</button>
         </nav>
 
@@ -35,7 +35,7 @@
 
         <!-- プレイヤー詳細画面 -->
         <div id="playerScreen" class="hidden">
-            <button onclick="showScreen('listScreen')" class="mb-4 text-blue-600 font-bold">&larr; 戻る</button>
+            <button onclick="showScreen('listScreen')" class="mb-4 text-blue-600 font-bold">&larr; リストに戻る</button>
             <div id="playerContent" class="bg-white p-8 rounded-3xl shadow-lg"></div>
         </div>
 
@@ -49,7 +49,6 @@
     </div>
 
     <script>
-        // 楽曲データ（環境に合わせて直接保持）
         const allSongs = [
             { "id": "1", "title": "第ゼロ感", "artist": "10-FEET", "category": "Mastering", "is_retake": false, "last_updated": "2024-12-17", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/10-FEET_第ゼロ感_Mastering-3.wav" },
             { "id": "2", "title": "Take on Me", "artist": "a-ha", "category": "Mastering", "is_retake": false, "last_updated": "2025-06-08", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/a-ha_Take on Me_Mastering-2.wav" },
@@ -75,18 +74,43 @@
         function renderList(targetPlaylist = "全楽曲") {
             document.getElementById('listTitle').innerText = targetPlaylist;
             const list = document.getElementById('songList');
-            const songs = (targetPlaylist === "全楽曲") ? allSongs : (playlists[targetPlaylist] || []);
+            let songs = (targetPlaylist === "全楽曲") ? [...allSongs].sort((a,b) => new Date(b.last_updated) - new Date(a.last_updated)) : (playlists[targetPlaylist] || []);
             
-            list.innerHTML = songs.map((song, i) => `
+            list.innerHTML = songs.map((song) => `
                 <div class="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
                     <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold">▶</button>
-                    <div class="flex-grow cursor-pointer" onclick="showDetail(${allSongs.findIndex(s => s.id === song.id)})">
+                    <div class="flex-grow cursor-pointer" onclick="showDetail('${song.id}', '${targetPlaylist}')">
                         <h2 class="font-bold">${song.title}</h2>
                         <p class="text-xs text-gray-500">${song.artist}</p>
                     </div>
                 </div>
             `).join('');
             showScreen('listScreen');
+        }
+
+        function showDetail(songId, fromList) {
+            const song = allSongs.find(s => s.id === songId);
+            const fileName = song.url.split('/').pop().replace('.wav', '');
+            const version = fileName.split('_').pop();
+            const currentListNames = Object.keys(playlists).filter(name => playlists[name].find(s => s.id === song.id));
+
+            document.getElementById('playerContent').innerHTML = `
+                <div class="space-y-4 text-left">
+                    <h2 class="text-2xl font-bold text-center">${song.title}</h2>
+                    <p class="text-gray-500 text-center mb-4">${song.artist}</p>
+                    <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold mb-4">再生する</button>
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                        <p><b>歌い直し:</b> ${song.is_retake ? 'はい' : 'いいえ'}</p>
+                        <p><b>バージョン:</b> ${version}</p>
+                        <p><b>所属リスト:</b> ${currentListNames.map(name => `<button onclick="renderList('${name}')" class="text-blue-600 underline">${name}</button>`).join(', ') || 'なし'}</p>
+                    </div>
+                    <select id="playlistSelect" class="w-full p-2 border rounded mt-4">
+                        ${Object.keys(playlists).filter(n => n !== "最新20曲").map(n => `<option value="${n}">${n}</option>`).join('')}
+                    </select>
+                    <button onclick="addToPlaylist('${song.id}')" class="w-full py-2 bg-gray-800 text-white rounded font-bold">リストに追加</button>
+                </div>
+            `;
+            showScreen('playerScreen');
         }
 
         function renderPlaylists() {
@@ -104,7 +128,6 @@
             if(name && !playlists[name]) {
                 playlists[name] = [];
                 localStorage.setItem('myPlaylists', JSON.stringify(playlists));
-                document.getElementById('newPlaylistName').value = '';
                 renderPlaylists();
             }
         }
@@ -115,44 +138,11 @@
             renderPlaylists();
         }
 
-        function showDetail(index) {
-            const song = allSongs[index];
-            const fileName = song.url.split('/').pop().replace('.wav', '');
-            const version = fileName.split('_').pop();
-            
-            const currentListNames = Object.keys(playlists).filter(name => 
-                playlists[name].find(s => s.id === song.id)
-            );
-
-            document.getElementById('playerContent').innerHTML = `
-                <div class="space-y-4 text-left">
-                    <h2 class="text-2xl font-bold text-center">${song.title}</h2>
-                    <p class="text-gray-500 text-center mb-6">${song.artist}</p>
-                    <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                        <p><b>歌い直し:</b> ${song.is_retake ? 'はい' : 'いいえ'}</p>
-                        <p><b>バージョン:</b> ${version}</p>
-                        <p><b>最高音:</b> ${song.highest_note || '未登録'}</p>
-                        <p><b>キー:</b> ${song.key || '未登録'}</p>
-                        <p><b>テンポ:</b> ${song.tempo || '未登録'}</p>
-                        <p><b>所属リスト:</b> ${currentListNames.map(name => 
-                            `<button onclick="renderList('${name}')" class="text-blue-600 underline">${name}</button>`
-                        ).join(', ') || 'なし'}</p>
-                    </div>
-                    <div class="mt-6">
-                        <select id="playlistSelect" class="w-full p-2 border rounded mb-2">
-                            ${Object.keys(playlists).filter(n => n !== "最新20曲").map(n => `<option value="${n}">${n}</option>`).join('')}
-                        </select>
-                        <button onclick="addToPlaylist(${index})" class="w-full py-2 bg-blue-600 text-white rounded font-bold">リストに追加</button>
-                    </div>
-                </div>
-            `;
-            showScreen('playerScreen');
-        }
-
-        function addToPlaylist(index) {
+        function addToPlaylist(songId) {
             const name = document.getElementById('playlistSelect').value;
-            if(!playlists[name].find(s => s.id === allSongs[index].id)) {
-                playlists[name].push(allSongs[index]);
+            const song = allSongs.find(s => s.id === songId);
+            if(!playlists[name].find(s => s.id === songId)) {
+                playlists[name].push(song);
                 localStorage.setItem('myPlaylists', JSON.stringify(playlists));
                 alert('追加しました');
             }
