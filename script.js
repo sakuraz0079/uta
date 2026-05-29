@@ -1,34 +1,52 @@
+let allSongs = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
-    const songListContainer = document.getElementById('songList');
-
+    const listContainer = document.getElementById('songList');
     try {
-        // data.jsonを非同期で取得
         const response = await fetch('data.json');
-        if (!response.ok) throw new Error('データの読み込みに失敗しました');
+        if (!response.ok) throw new Error('データ取得失敗');
         
-        const songs = await response.json();
-
-        // 読み込み中メッセージを削除
-        songListContainer.innerHTML = '';
-
-        // 楽曲リストの生成
-        songs.forEach(song => {
+        allSongs = await response.json();
+        
+        listContainer.innerHTML = '';
+        allSongs.forEach((song, index) => {
             const div = document.createElement('div');
-            div.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
-            
-            // 楽曲情報とオーディオプレイヤーのレンダリング
+            div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50';
             div.innerHTML = `
-                <div class="mb-3">
-                    <h2 class="font-bold text-lg text-gray-800">${song.title}</h2>
-                    <p class="text-sm text-gray-500">${song.artist}</p>
-                    <span class="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">${song.category}</span>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-bold text-gray-800">${song.title}</h2>
+                        <p class="text-xs text-gray-500">${song.artist}</p>
+                    </div>
+                    ${song.is_retake ? '<span class="text-[10px] text-red-500 font-bold">RE-TAKE</span>' : ''}
                 </div>
-                <audio controls src="${song.url}" class="w-full h-10" preload="metadata"></audio>
             `;
-            songListContainer.appendChild(div);
+            div.onclick = () => showPlayer(index);
+            listContainer.appendChild(div);
         });
-    } catch (error) {
-        console.error(error);
-        songListContainer.innerHTML = `<p class="text-center text-red-500">楽曲の読み込み中にエラーが発生しました。</p>`;
+    } catch (e) {
+        console.error(e);
+        listContainer.innerHTML = '<p class="text-center text-red-500">読み込みエラー</p>';
     }
 });
+
+function showPlayer(index) {
+    const song = allSongs[index];
+    const playerScreen = document.getElementById('playerScreen');
+    const listScreen = document.getElementById('listScreen');
+    const content = document.getElementById('playerContent');
+
+    content.innerHTML = `
+        <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
+        <p class="text-gray-500 mb-6">${song.artist}</p>
+        <audio controls autoplay src="${song.url}" class="w-full"></audio>
+    `;
+
+    listScreen.classList.add('hidden');
+    playerScreen.classList.remove('hidden');
+}
+
+function showList() {
+    document.getElementById('playerScreen').classList.add('hidden');
+    document.getElementById('listScreen').classList.remove('hidden');
+}
