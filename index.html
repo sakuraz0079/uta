@@ -49,25 +49,28 @@
     </div>
 
     <script>
-        const allSongs = [
-            { "id": "1", "title": "第ゼロ感", "artist": "10-FEET", "category": "Mastering", "is_retake": false, "last_updated": "2024-12-17", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/10-FEET_第ゼロ感_Mastering-3.wav" },
-            { "id": "2", "title": "Take on Me", "artist": "a-ha", "category": "Mastering", "is_retake": false, "last_updated": "2025-06-08", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/a-ha_Take on Me_Mastering-2.wav" },
-            { "id": "3", "title": "Black Cherry", "artist": "Acid Black Cherry", "category": "Mastering", "is_retake": false, "last_updated": "2025-01-01", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/AcidBlackCherry_BlackCherry_Mastering-1.wav" },
-            { "id": "308", "title": "Shangri-La", "artist": "電気グルーヴ", "category": "Mastering", "is_retake": false, "last_updated": "2024-08-13", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/電気グルーヴ_Shangri-La_Mastering-4.wav" },
-            { "id": "309", "title": "傷だらけの人生", "artist": "鶴田浩二", "category": "Mastering", "is_retake": false, "last_updated": "2025-09-27", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/鶴田浩二_傷だらけの人生_Mastering-3.wav" },
-            { "id": "310", "title": "Like a Angel", "artist": "L'Arc~en~Ciel", "category": "Mastering", "is_retake": false, "last_updated": "2025-05-20", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/LArc_LikeaAngel_Mastering-1.wav" }
-        ];
-
+        let allSongs = [];
         let audioPlayer = new Audio();
         let playlists = JSON.parse(localStorage.getItem('myPlaylists')) || { 
             "最新20曲": [], 
             "お気に入り": [] 
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
             updateLatest20();
             renderList('全楽曲');
         });
+
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                allSongs = await response.json();
+            } catch (error) {
+                console.error("data.jsonの読み込みに失敗しました:", error);
+                document.getElementById('songList').innerHTML = '<p class="text-red-500">楽曲データの読み込みに失敗しました。</p>';
+            }
+        }
 
         function updateLatest20() {
             playlists["最新20曲"] = [...allSongs].sort((a,b) => new Date(b.last_updated) - new Date(a.last_updated)).slice(0, 20);
