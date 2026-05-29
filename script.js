@@ -83,4 +83,12 @@ function updatePlayerUI() {
         const currentSong = allSongs.find(s => s.url === audioPlayer.src);
         document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
     }
+// 既存の script.js の末尾に追記してください
+window.addEventListener('load', () => {
+    // ページ読み込み完了後にボタンが存在するかチェック
+    const buttons = document.querySelectorAll('.play-btn');
+    if (buttons.length === 0) {
+        console.warn("再生ボタンが見つかりません。HTML構造を確認してください。");
+    }
+});
 }
