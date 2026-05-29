@@ -6,128 +6,117 @@
     <title>UTA-ARCHIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #progressBar { transition: width 0.1s linear; }
-        .play-btn { transition: transform 0.1s; }
+        .waveform-canvas { width: 100%; height: 60px; cursor: pointer; }
         .play-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-40">
     <div class="max-w-md mx-auto p-4">
-        <!-- 一覧画面 -->
         <div id="listScreen">
             <header class="mb-6 text-center"><h1 class="text-3xl font-extrabold text-gray-800">UTA-ARCHIVE</h1></header>
-            <div id="songList" class="space-y-3">
-                <div class="text-center py-10 text-gray-400">読み込み中...</div>
-            </div>
+            <div id="songList" class="space-y-3"></div>
         </div>
 
-        <!-- 再生詳細画面 -->
         <div id="playerScreen" class="hidden">
             <button onclick="showList()" class="mb-4 text-blue-600 font-bold">&larr; リストに戻る</button>
             <div id="playerContent" class="bg-white p-8 rounded-3xl shadow-lg text-center"></div>
         </div>
 
-        <!-- 固定ミニプレイヤー -->
-        <div id="miniPlayer" class="hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-6 shadow-2xl z-50 rounded-t-3xl text-center">
-            <p id="miniTitle" class="text-lg font-bold mb-4 truncate"></p>
-            <div class="h-2 w-full bg-gray-200 rounded-full mb-6">
-                <div id="progressBar" class="h-full bg-blue-600 rounded-full w-0"></div>
+        <!-- 固定ミニプレイヤー（高機能版） -->
+        <div id="miniPlayer" class="hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-2xl z-50 rounded-t-3xl">
+            <p id="miniTitle" class="text-sm font-bold mb-2 truncate text-center"></p>
+            <canvas id="waveform" class="waveform-canvas mb-3 bg-gray-100 rounded"></canvas>
+            <div class="flex justify-center items-center gap-4 text-2xl">
+                <button onclick="changeMode()" id="modeBtn" class="text-sm text-gray-400">順次</button>
+                <button onclick="skip(-1)">⏮</button>
+                <button onclick="togglePlay()" id="mainPlayBtn" class="bg-blue-600 text-white w-16 h-16 rounded-full text-2xl shadow-lg flex items-center justify-center">▶</button>
+                <button onclick="skip(1)">⏭</button>
+                <button onclick="toggleShuffle()" id="shuffleBtn" class="text-sm text-gray-400">順序</button>
             </div>
-            <button id="mainPlayBtn" onclick="togglePlay()" class="play-btn bg-blue-600 text-white w-20 h-20 rounded-full text-3xl shadow-xl flex items-center justify-center mx-auto">▶</button>
         </div>
     </div>
 
     <script>
-        let allSongs = [];
-        let audioPlayer = new Audio();
+        let allSongs = [], currentIndex = 0, isShuffle = false, repeatMode = 0; // 0:なし, 1:全曲, 2:1曲
+        let audioPlayer = new Audio(), audioCtx, analyser, dataArray;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const listContainer = document.getElementById('songList');
-            
-            // fetchのエラーを回避しつつ、data.jsonを読み込むためのパス修正
-            // 現在のページURLを基準に絶対パスを構築します
             const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-            const dataUrl = `${baseUrl}/data.json`;
-
             try {
-                const response = await fetch(dataUrl);
-                if (!response.ok) throw new Error('データ取得失敗');
+                const response = await fetch(`${baseUrl}/data.json`);
                 allSongs = await response.json();
-            } catch (e) {
-                console.error("fetchエラー:", e);
-                listContainer.innerHTML = '<p class="text-center text-red-500">楽曲データの読み込みに失敗しました。</p>';
-                return;
-            }
+                renderList();
+            } catch (e) { document.getElementById('songList').innerHTML = 'データ読み込みエラー'; }
 
-            listContainer.innerHTML = '';
-            allSongs.forEach((song, index) => {
-                const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50';
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="font-bold text-gray-800">${song.title}</h2>
-                            <p class="text-xs text-gray-500">${song.artist}</p>
-                        </div>
-                        ${song.is_retake ? '<span class="text-[10px] text-red-500 font-bold">RE-TAKE</span>' : ''}
-                    </div>
-                `;
-                div.onclick = () => showPlayer(index);
-                listContainer.appendChild(div);
-            });
-
-            audioPlayer.onplay = () => updatePlayerUI();
-            audioPlayer.onpause = () => updatePlayerUI();
-            audioPlayer.ontimeupdate = () => updateProgress();
+            audioPlayer.onended = () => handleNext();
         });
 
-        function showPlayer(index) {
-            const song = allSongs[index];
-            if (audioPlayer.src !== song.url) {
-                audioPlayer.src = song.url;
-            }
-            const content = document.getElementById('playerContent');
-            content.innerHTML = `
-                <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
-                <p class="text-gray-500 mb-6">${song.artist}</p>
-            `;
-            document.getElementById('listScreen').classList.add('hidden');
-            document.getElementById('playerScreen').classList.remove('hidden');
-            updatePlayerUI();
+        function renderList() {
+            const list = document.getElementById('songList');
+            allSongs.forEach((song, i) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer';
+                div.innerHTML = `<h2 class="font-bold">${song.title}</h2><p class="text-xs text-gray-500">${song.artist}</p>`;
+                div.onclick = () => loadAndPlay(i);
+                list.appendChild(div);
+            });
         }
 
-        function showList() {
-            document.getElementById('playerScreen').classList.add('hidden');
-            document.getElementById('listScreen').classList.remove('hidden');
+        function loadAndPlay(index) {
+            currentIndex = index;
+            audioPlayer.src = allSongs[index].url;
+            setupWebAudio();
+            audioPlayer.play();
+            document.getElementById('listScreen').classList.add('hidden');
+            document.getElementById('playerScreen').classList.remove('hidden');
+            document.getElementById('miniPlayer').classList.remove('hidden');
+            document.getElementById('miniTitle').innerText = allSongs[index].title;
+        }
+
+        function setupWebAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                const source = audioCtx.createMediaElementSource(audioPlayer);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                drawWaveform();
+            }
+        }
+
+        function drawWaveform() {
+            const canvas = document.getElementById('waveform');
+            const ctx = canvas.getContext('2d');
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#2563eb';
+            for (let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                ctx.fillRect(i * 3, canvas.height - barHeight, 2, barHeight);
+            }
+            requestAnimationFrame(drawWaveform);
         }
 
         function togglePlay() {
-            if (audioPlayer.paused) {
-                audioPlayer.play().catch(e => console.error("再生失敗:", e));
-            } else {
-                audioPlayer.pause();
-            }
+            audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
+            document.getElementById('mainPlayBtn').innerText = audioPlayer.paused ? '▶' : '⏸';
         }
 
-        function updateProgress() {
-            const bar = document.getElementById('progressBar');
-            if (bar && audioPlayer.duration) {
-                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-                bar.style.width = percent + '%';
-            }
+        function skip(dir) {
+            currentIndex = (currentIndex + dir + allSongs.length) % allSongs.length;
+            loadAndPlay(currentIndex);
         }
 
-        function updatePlayerUI() {
-            const isPaused = audioPlayer.paused;
-            const btn = document.getElementById('mainPlayBtn');
-            if (btn) btn.innerHTML = isPaused ? '▶' : '⏸';
-            
-            const mini = document.getElementById('miniPlayer');
-            if (audioPlayer.src) {
-                mini.classList.remove('hidden');
-                const currentSong = allSongs.find(s => s.url === audioPlayer.src);
-                document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
-            }
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            document.getElementById('shuffleBtn').innerText = isShuffle ? 'シャッフル' : '順序';
+        }
+
+        function handleNext() {
+            if (isShuffle) skip(Math.floor(Math.random() * allSongs.length));
+            else skip(1);
         }
     </script>
 </body>
