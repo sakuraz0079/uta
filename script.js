@@ -1,11 +1,8 @@
 let allSongs = [];
-let audioPlayer = null; // ページ全体で1つのオーディオインスタンスを保持
+let audioPlayer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // ページロード時に固定オーディオインスタンスを作成
     audioPlayer = new Audio();
-    audioPlayer.className = "w-full";
-    audioPlayer.controls = true;
 
     const listContainer = document.getElementById('songList');
     try {
@@ -35,48 +32,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         listContainer.innerHTML = '<p class="text-center text-red-500">読み込みエラー</p>';
     }
 
-    // オーディオ状態変化時のイベント
-    audioPlayer.onplay = () => updateMiniPlayer();
-    audioPlayer.onpause = () => updateMiniPlayer();
+    // 再生状態の監視
+    audioPlayer.onplay = () => updatePlayerUI();
+    audioPlayer.onpause = () => updatePlayerUI();
+    audioPlayer.ontimeupdate = () => updateProgress();
 });
 
 function showPlayer(index) {
     const song = allSongs[index];
-    const playerScreen = document.getElementById('playerScreen');
-    const listScreen = document.getElementById('listScreen');
-    const content = document.getElementById('playerContent');
-
-    // 新しい曲であればURLをセット
     if (audioPlayer.src !== song.url) {
         audioPlayer.src = song.url;
     }
 
+    const content = document.getElementById('playerContent');
     content.innerHTML = `
         <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
         <p class="text-gray-500 mb-6">${song.artist}</p>
     `;
-    content.appendChild(audioPlayer); // プレイヤーを移動
 
-    listScreen.classList.add('hidden');
-    playerScreen.classList.remove('hidden');
+    document.getElementById('listScreen').classList.add('hidden');
+    document.getElementById('playerScreen').classList.remove('hidden');
 }
 
 function showList() {
     document.getElementById('playerScreen').classList.add('hidden');
     document.getElementById('listScreen').classList.remove('hidden');
-    updateMiniPlayer();
 }
 
-function updateMiniPlayer() {
-    const miniPlayer = document.getElementById('miniPlayer');
-    const content = document.getElementById('miniPlayerContent');
+// 独自の再生制御
+function togglePlay() {
+    if (audioPlayer.paused) audioPlayer.play();
+    else audioPlayer.pause();
+}
+
+function updateProgress() {
+    const bar = document.getElementById('progressBar');
+    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100 || 0;
+    bar.style.width = percent + '%';
+}
+
+function updatePlayerUI() {
+    const isPaused = audioPlayer.paused;
+    const playButtons = document.querySelectorAll('.play-btn');
+    playButtons.forEach(btn => btn.innerHTML = isPaused ? '▶' : '⏸');
     
-    // 再生中かつ一時停止中でない場合のみ表示
-    if (audioPlayer.src && !audioPlayer.paused) {
+    // 下部プレイヤーの表示状態
+    const mini = document.getElementById('miniPlayer');
+    if (audioPlayer.src) {
+        mini.classList.remove('hidden');
         const currentSong = allSongs.find(s => s.url === audioPlayer.src);
-        miniPlayer.classList.remove('hidden');
-        content.innerHTML = `<p class="text-sm font-bold truncate">再生中: ${currentSong ? currentSong.title : '楽曲'}</p>`;
-    } else {
-        miniPlayer.classList.add('hidden');
+        document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
     }
 }
