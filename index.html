@@ -49,15 +49,20 @@
     </div>
 
     <script>
-        let allSongs = [], audioPlayer = new Audio();
+        // 楽曲データ（環境に合わせて直接保持）
+        const allSongs = [
+            { "id": "1", "title": "第ゼロ感", "artist": "10-FEET", "category": "Mastering", "is_retake": false, "last_updated": "2024-12-17", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/10-FEET_第ゼロ感_Mastering-3.wav" },
+            { "id": "2", "title": "Take on Me", "artist": "a-ha", "category": "Mastering", "is_retake": false, "last_updated": "2025-06-08", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/a-ha_Take on Me_Mastering-2.wav" },
+            { "id": "309", "title": "傷だらけの人生", "artist": "鶴田浩二", "category": "Mastering", "is_retake": false, "last_updated": "2025-09-27", "url": "https://pub-3b279d63cf3f4efdb626192fa8e22ef2.r2.dev/鶴田浩二_傷だらけの人生_Mastering-3.wav" }
+        ];
+
+        let audioPlayer = new Audio();
         let playlists = JSON.parse(localStorage.getItem('myPlaylists')) || { 
             "最新20曲": [], 
             "お気に入り": [] 
         };
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const response = await fetch('data.json');
-            allSongs = await response.json();
+        document.addEventListener('DOMContentLoaded', () => {
             updateLatest20();
             renderList();
         });
@@ -75,7 +80,7 @@
             list.innerHTML = songs.map((song, i) => `
                 <div class="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
                     <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold">▶</button>
-                    <div class="flex-grow cursor-pointer" onclick="showDetail(${allSongs.indexOf(song)})">
+                    <div class="flex-grow cursor-pointer" onclick="showDetail(${allSongs.findIndex(s => s.id === song.id)})">
                         <h2 class="font-bold">${song.title}</h2>
                         <p class="text-xs text-gray-500">${song.artist}</p>
                     </div>
@@ -115,7 +120,6 @@
             const fileName = song.url.split('/').pop().replace('.wav', '');
             const version = fileName.split('_').pop();
             
-            // 所属するリストを探す
             const currentListNames = Object.keys(playlists).filter(name => 
                 playlists[name].find(s => s.id === song.id)
             );
