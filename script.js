@@ -2,6 +2,7 @@ let allSongs = [];
 let audioPlayer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // ページ全体で一つだけオーディオインスタンスを保持
     audioPlayer = new Audio();
 
     const listContainer = document.getElementById('songList');
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function showPlayer(index) {
     const song = allSongs[index];
+    // URLが変わった時だけ読み込み
     if (audioPlayer.src !== song.url) {
         audioPlayer.src = song.url;
     }
@@ -59,18 +61,25 @@ function showList() {
     document.getElementById('listScreen').classList.remove('hidden');
 }
 
-// 独自の再生制御
+// 独自の再生制御（トグル）
 function togglePlay() {
-    if (audioPlayer.paused) audioPlayer.play();
-    else audioPlayer.pause();
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+    } else {
+        audioPlayer.pause();
+    }
 }
 
+// プログレスバーの更新
 function updateProgress() {
     const bar = document.getElementById('progressBar');
-    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100 || 0;
-    bar.style.width = percent + '%';
+    if (bar && audioPlayer.duration) {
+        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        bar.style.width = percent + '%';
+    }
 }
 
+// UI（ボタンアイコンと下部プレイヤーの表示）更新
 function updatePlayerUI() {
     const isPaused = audioPlayer.paused;
     const playButtons = document.querySelectorAll('.play-btn');
@@ -83,12 +92,12 @@ function updatePlayerUI() {
         const currentSong = allSongs.find(s => s.url === audioPlayer.src);
         document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
     }
-// 既存の script.js の末尾に追記してください
+}
+
+// ロード完了チェック
 window.addEventListener('load', () => {
-    // ページ読み込み完了後にボタンが存在するかチェック
     const buttons = document.querySelectorAll('.play-btn');
     if (buttons.length === 0) {
         console.warn("再生ボタンが見つかりません。HTML構造を確認してください。");
     }
 });
-}
