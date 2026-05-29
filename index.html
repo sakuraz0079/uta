@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UTA-ARCHIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>#progressBar { transition: width 0.1s linear; }</style>
+    <style>
+        #progressBar { transition: width 0.1s linear; }
+        .play-btn { transition: transform 0.1s; }
+        .play-btn:active { transform: scale(0.9); }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-40">
     <div class="max-w-md mx-auto p-4">
         <!-- 一覧画面 -->
         <div id="listScreen">
             <header class="mb-6 text-center"><h1 class="text-3xl font-extrabold text-gray-800">UTA-ARCHIVE</h1></header>
-            <div id="songList" class="space-y-3"></div>
+            <div id="songList" class="space-y-3">
+                <div class="text-center py-10 text-gray-400">読み込み中...</div>
+            </div>
         </div>
 
         <!-- 再生詳細画面 -->
@@ -27,10 +33,102 @@
             <div class="h-2 w-full bg-gray-200 rounded-full mb-6">
                 <div id="progressBar" class="h-full bg-blue-600 rounded-full w-0"></div>
             </div>
-            <!-- ボタンが確実に描画されるようにインラインスタイルなどで調整 -->
             <button id="mainPlayBtn" onclick="togglePlay()" class="play-btn bg-blue-600 text-white w-20 h-20 rounded-full text-3xl shadow-xl flex items-center justify-center mx-auto">▶</button>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        let allSongs = [];
+        let audioPlayer = new Audio();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const listContainer = document.getElementById('songList');
+            
+            // fetchのエラーを回避しつつ、data.jsonを読み込むためのパス修正
+            // 現在のページURLを基準に絶対パスを構築します
+            const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+            const dataUrl = `${baseUrl}/data.json`;
+
+            try {
+                const response = await fetch(dataUrl);
+                if (!response.ok) throw new Error('データ取得失敗');
+                allSongs = await response.json();
+            } catch (e) {
+                console.error("fetchエラー:", e);
+                listContainer.innerHTML = '<p class="text-center text-red-500">楽曲データの読み込みに失敗しました。</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            allSongs.forEach((song, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-50';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="font-bold text-gray-800">${song.title}</h2>
+                            <p class="text-xs text-gray-500">${song.artist}</p>
+                        </div>
+                        ${song.is_retake ? '<span class="text-[10px] text-red-500 font-bold">RE-TAKE</span>' : ''}
+                    </div>
+                `;
+                div.onclick = () => showPlayer(index);
+                listContainer.appendChild(div);
+            });
+
+            audioPlayer.onplay = () => updatePlayerUI();
+            audioPlayer.onpause = () => updatePlayerUI();
+            audioPlayer.ontimeupdate = () => updateProgress();
+        });
+
+        function showPlayer(index) {
+            const song = allSongs[index];
+            if (audioPlayer.src !== song.url) {
+                audioPlayer.src = song.url;
+            }
+            const content = document.getElementById('playerContent');
+            content.innerHTML = `
+                <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
+                <p class="text-gray-500 mb-6">${song.artist}</p>
+            `;
+            document.getElementById('listScreen').classList.add('hidden');
+            document.getElementById('playerScreen').classList.remove('hidden');
+            updatePlayerUI();
+        }
+
+        function showList() {
+            document.getElementById('playerScreen').classList.add('hidden');
+            document.getElementById('listScreen').classList.remove('hidden');
+        }
+
+        function togglePlay() {
+            if (audioPlayer.paused) {
+                audioPlayer.play().catch(e => console.error("再生失敗:", e));
+            } else {
+                audioPlayer.pause();
+            }
+        }
+
+        function updateProgress() {
+            const bar = document.getElementById('progressBar');
+            if (bar && audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                bar.style.width = percent + '%';
+            }
+        }
+
+        function updatePlayerUI() {
+            const isPaused = audioPlayer.paused;
+            const btn = document.getElementById('mainPlayBtn');
+            if (btn) btn.innerHTML = isPaused ? '▶' : '⏸';
+            
+            const mini = document.getElementById('miniPlayer');
+            if (audioPlayer.src) {
+                mini.classList.remove('hidden');
+                const currentSong = allSongs.find(s => s.url === audioPlayer.src);
+                document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
+            }
+        }
+    </script>
 </body>
 </html>
