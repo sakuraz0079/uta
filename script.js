@@ -2,7 +2,6 @@ let allSongs = [];
 let audioPlayer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // ページ全体で一つだけオーディオインスタンスを保持
     audioPlayer = new Audio();
 
     const listContainer = document.getElementById('songList');
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function showPlayer(index) {
     const song = allSongs[index];
-    // URLが変わった時だけ読み込み
     if (audioPlayer.src !== song.url) {
         audioPlayer.src = song.url;
     }
@@ -50,10 +48,12 @@ function showPlayer(index) {
     content.innerHTML = `
         <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
         <p class="text-gray-500 mb-6">${song.artist}</p>
+        <button onclick="togglePlay()" class="play-btn bg-blue-600 text-white w-20 h-20 rounded-full text-3xl shadow-xl mx-auto block mb-6">▶</button>
     `;
 
     document.getElementById('listScreen').classList.add('hidden');
     document.getElementById('playerScreen').classList.remove('hidden');
+    updatePlayerUI();
 }
 
 function showList() {
@@ -61,7 +61,6 @@ function showList() {
     document.getElementById('listScreen').classList.remove('hidden');
 }
 
-// 独自の再生制御（トグル）
 function togglePlay() {
     if (audioPlayer.paused) {
         audioPlayer.play();
@@ -70,7 +69,6 @@ function togglePlay() {
     }
 }
 
-// プログレスバーの更新
 function updateProgress() {
     const bar = document.getElementById('progressBar');
     if (bar && audioPlayer.duration) {
@@ -79,13 +77,11 @@ function updateProgress() {
     }
 }
 
-// UI（ボタンアイコンと下部プレイヤーの表示）更新
 function updatePlayerUI() {
     const isPaused = audioPlayer.paused;
     const playButtons = document.querySelectorAll('.play-btn');
     playButtons.forEach(btn => btn.innerHTML = isPaused ? '▶' : '⏸');
     
-    // 下部プレイヤーの表示状態
     const mini = document.getElementById('miniPlayer');
     if (audioPlayer.src) {
         mini.classList.remove('hidden');
@@ -93,11 +89,3 @@ function updatePlayerUI() {
         document.getElementById('miniTitle').innerText = currentSong?.title || '再生中';
     }
 }
-
-// ロード完了チェック
-window.addEventListener('load', () => {
-    const buttons = document.querySelectorAll('.play-btn');
-    if (buttons.length === 0) {
-        console.warn("再生ボタンが見つかりません。HTML構造を確認してください。");
-    }
-});
