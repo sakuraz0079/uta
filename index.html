@@ -9,21 +9,28 @@
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-24">
     <div class="max-w-md mx-auto p-4">
         <!-- ナビゲーション -->
-        <nav class="flex gap-4 mb-6 text-sm font-bold text-gray-500">
-            <button onclick="showScreen('listScreen')" class="active:text-blue-600">全楽曲</button>
-            <button onclick="showPlaylist()" class="active:text-blue-600">再生リスト</button>
+        <nav class="flex gap-4 mb-6 text-sm font-bold text-gray-500 overflow-x-auto pb-2">
+            <button onclick="showScreen('listScreen')" class="whitespace-nowrap">全楽曲</button>
+            <button onclick="showScreen('playlistScreen')" class="whitespace-nowrap text-blue-600">再生リスト</button>
         </nav>
+
+        <!-- 再生リスト管理画面 -->
+        <div id="playlistScreen" class="hidden">
+            <h1 class="text-2xl font-extrabold mb-4">再生リスト</h1>
+            <div class="flex gap-2 mb-4">
+                <input id="newPlaylistName" type="text" placeholder="新規リスト名" class="flex-grow p-2 border rounded">
+                <button onclick="createPlaylist()" class="bg-blue-600 text-white px-4 rounded font-bold">+</button>
+            </div>
+            <div id="playlistList" class="space-y-2"></div>
+        </div>
 
         <!-- 楽曲リスト画面 -->
         <div id="listScreen">
-            <h1 class="text-2xl font-extrabold mb-4">全楽曲</h1>
+            <div class="flex justify-between items-center mb-4">
+                <h1 id="listTitle" class="text-2xl font-extrabold">全楽曲</h1>
+                <button onclick="showScreen('playlistScreen')" class="text-sm text-blue-600">リスト選択</button>
+            </div>
             <div id="songList" class="space-y-3">読み込み中...</div>
-        </div>
-
-        <!-- 再生リスト画面 -->
-        <div id="playlistScreen" class="hidden">
-            <h1 class="text-2xl font-extrabold mb-4">再生リスト</h1>
-            <div id="playlistContent" class="space-y-3"></div>
         </div>
 
         <!-- プレイヤー詳細画面 -->
@@ -43,25 +50,66 @@
 
     <script>
         let allSongs = [], audioPlayer = new Audio();
-        let playlist = JSON.parse(localStorage.getItem('myPlaylist')) || [];
+        let playlists = JSON.parse(localStorage.getItem('myPlaylists')) || { 
+            "最新20曲": [], 
+            "お気に入り": [] 
+        };
+        let currentPlaylist = "全楽曲";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch('data.json');
             allSongs = await response.json();
+            updateLatest20();
             renderList();
         });
 
-        function renderList() {
+        function updateLatest20() {
+            playlists["最新20曲"] = [...allSongs].sort((a,b) => new Date(b.last_updated) - new Date(a.last_updated)).slice(0, 20);
+            localStorage.setItem('myPlaylists', JSON.stringify(playlists));
+        }
+
+        function renderList(targetPlaylist = "全楽曲") {
+            currentPlaylist = targetPlaylist;
+            document.getElementById('listTitle').innerText = targetPlaylist;
             const list = document.getElementById('songList');
-            list.innerHTML = allSongs.map((song, i) => `
+            const songs = (targetPlaylist === "全楽曲") ? allSongs : (playlists[targetPlaylist] || []);
+            
+            list.innerHTML = songs.map((song, i) => `
                 <div class="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
-                    <button onclick="loadAndPlay(${i})" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold">▶</button>
-                    <div class="flex-grow cursor-pointer" onclick="showDetail(${i})">
+                    <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold">▶</button>
+                    <div class="flex-grow cursor-pointer" onclick="showDetail(${allSongs.indexOf(song)})">
                         <h2 class="font-bold">${song.title}</h2>
                         <p class="text-xs text-gray-500">${song.artist}</p>
                     </div>
                 </div>
             `).join('');
+            showScreen('listScreen');
+        }
+
+        function renderPlaylists() {
+            const list = document.getElementById('playlistList');
+            list.innerHTML = Object.keys(playlists).map(name => `
+                <div class="bg-white p-4 rounded-xl border flex justify-between items-center">
+                    <button onclick="renderList('${name}')" class="font-bold">${name}</button>
+                    ${name !== "最新20曲" && name !== "お気に入り" ? `<button onclick="deletePlaylist('${name}')" class="text-red-500 text-xs">削除</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function createPlaylist() {
+            const name = document.getElementById('newPlaylistName').value;
+            if(name && !playlists[name]) {
+                playlists[name] = [];
+                localStorage.setItem('myPlaylists', JSON.stringify(playlists));
+                document.getElementById('newPlaylistName').value = '';
+                renderPlaylists();
+            }
+        }
+
+        function deletePlaylist(name) {
+            delete playlists[name];
+            localStorage.setItem('myPlaylists', JSON.stringify(playlists));
+            renderPlaylists();
         }
 
         function showDetail(index) {
@@ -74,43 +122,36 @@
                     <p><b>Ver:</b> ${version}</p>
                     <p><b>最高音:</b> ${song.highest_note || '未登録'}</p>
                 </div>
-                <button onclick="addToPlaylist(${index})" class="mt-6 w-full py-3 bg-gray-800 text-white rounded-xl font-bold">再生リストに追加</button>
+                <div class="mt-4">
+                    <select id="playlistSelect" class="w-full p-2 border rounded mb-2">
+                        ${Object.keys(playlists).filter(n => n !== "最新20曲").map(n => `<option value="${n}">${n}</option>`).join('')}
+                    </select>
+                    <button onclick="addToPlaylist(${index})" class="w-full py-2 bg-blue-600 text-white rounded font-bold">リストに追加</button>
+                </div>
             `;
             showScreen('playerScreen');
         }
 
-        function showPlaylist() {
-            const content = document.getElementById('playlistContent');
-            content.innerHTML = playlist.map((song, i) => `
-                <div class="bg-white p-4 rounded-xl border flex justify-between items-center">
-                    <span>${song.title}</span>
-                    <button onclick="loadAndPlayByUrl('${song.url}')" class="text-blue-600 font-bold">再生</button>
-                </div>
-            `).join('');
-            showScreen('playlistScreen');
-        }
-
         function addToPlaylist(index) {
-            playlist.push(allSongs[index]);
-            localStorage.setItem('myPlaylist', JSON.stringify(playlist));
-            alert('追加しました');
+            const name = document.getElementById('playlistSelect').value;
+            if(!playlists[name].find(s => s.id === allSongs[index].id)) {
+                playlists[name].push(allSongs[index]);
+                localStorage.setItem('myPlaylists', JSON.stringify(playlists));
+                alert('追加しました');
+            }
         }
 
         function showScreen(id) {
             ['listScreen', 'playlistScreen', 'playerScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
+            if(id === 'playlistScreen') renderPlaylists();
         }
 
-        function loadAndPlay(index) {
-            audioPlayer.src = allSongs[index].url;
-            audioPlayer.play();
-            document.getElementById('miniPlayer').classList.remove('hidden');
-            document.getElementById('miniTitle').innerText = allSongs[index].title;
-        }
-
-        function loadAndPlayByUrl(url) {
+        function loadAndPlaySong(url, title) {
             audioPlayer.src = url;
             audioPlayer.play();
+            document.getElementById('miniPlayer').classList.remove('hidden');
+            document.getElementById('miniTitle').innerText = title;
         }
 
         function togglePlay() {
