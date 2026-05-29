@@ -1,6 +1,12 @@
 let allSongs = [];
+let audioPlayer = null; // ページ全体で1つのオーディオインスタンスを保持
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // ページロード時に固定オーディオインスタンスを作成
+    audioPlayer = new Audio();
+    audioPlayer.className = "w-full";
+    audioPlayer.controls = true;
+
     const listContainer = document.getElementById('songList');
     try {
         const response = await fetch('data.json');
@@ -28,6 +34,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error(e);
         listContainer.innerHTML = '<p class="text-center text-red-500">読み込みエラー</p>';
     }
+
+    // オーディオ状態変化時のイベント
+    audioPlayer.onplay = () => updateMiniPlayer();
+    audioPlayer.onpause = () => updateMiniPlayer();
 });
 
 function showPlayer(index) {
@@ -36,12 +46,16 @@ function showPlayer(index) {
     const listScreen = document.getElementById('listScreen');
     const content = document.getElementById('playerContent');
 
-    // 自動再生せず、URLのみセット
+    // 新しい曲であればURLをセット
+    if (audioPlayer.src !== song.url) {
+        audioPlayer.src = song.url;
+    }
+
     content.innerHTML = `
         <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
         <p class="text-gray-500 mb-6">${song.artist}</p>
-        <audio id="mainAudio" controls src="${song.url}" class="w-full"></audio>
     `;
+    content.appendChild(audioPlayer); // プレイヤーを移動
 
     listScreen.classList.add('hidden');
     playerScreen.classList.remove('hidden');
@@ -49,20 +63,20 @@ function showPlayer(index) {
 
 function showList() {
     document.getElementById('playerScreen').classList.add('hidden');
-    listScreen.classList.remove('hidden');
-    
-    // リストに戻る際、再生中の音声があれば画面下部にミニプレイヤーを表示
+    document.getElementById('listScreen').classList.remove('hidden');
     updateMiniPlayer();
 }
 
 function updateMiniPlayer() {
-    const audio = document.getElementById('mainAudio');
     const miniPlayer = document.getElementById('miniPlayer');
+    const content = document.getElementById('miniPlayerContent');
     
-    if (audio && !audio.paused) {
+    // 再生中かつ一時停止中でない場合のみ表示
+    if (audioPlayer.src && !audioPlayer.paused) {
+        const currentSong = allSongs.find(s => s.url === audioPlayer.src);
         miniPlayer.classList.remove('hidden');
-        document.getElementById('miniPlayerContent').innerHTML = `
-            <p class="text-sm font-bold truncate">再生中: ${allSongs.find(s => s.url === audio.src)?.title || '楽曲'}</p>
-        `;
+        content.innerHTML = `<p class="text-sm font-bold truncate">再生中: ${currentSong ? currentSong.title : '楽曲'}</p>`;
+    } else {
+        miniPlayer.classList.add('hidden');
     }
 }
