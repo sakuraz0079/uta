@@ -30,7 +30,7 @@
     </div>
 
     <script>
-        let allSongs = [], currentIndex = 0, currentPage = 1;
+        let allSongs = [], currentIndex = 0, currentPage = 1, playList = [];
         const ITEMS_PER_PAGE = 20;
         let audioPlayer = new Audio();
 
@@ -39,7 +39,6 @@
             try {
                 const response = await fetch(`${baseUrl}/data.json`);
                 const data = await response.json();
-                // 最新の生成年月日順にソート
                 allSongs = data.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
                 renderList();
             } catch (e) { document.getElementById('songList').innerHTML = 'データ取得エラー'; }
@@ -82,13 +81,27 @@
         function showDetail(index) {
             const song = allSongs[index];
             document.getElementById('playerContent').innerHTML = `
-                <h2 class="text-2xl font-bold mb-2">${song.title}</h2>
+                <h2 class="text-2xl font-bold mb-2">${song.title} ${song.is_retake ? '<span class="text-xs text-red-500">(RE-TAKE)</span>' : ''}</h2>
                 <p class="text-lg text-gray-600">${song.artist}</p>
-                <p class="text-sm text-gray-400 mt-4">更新日: ${song.last_updated}</p>
-                <button onclick="loadAndPlay(${index})" class="mt-6 w-full py-4 bg-blue-600 text-white rounded-xl font-bold">この曲を再生する</button>
+                <div class="mt-6 text-sm text-gray-500 bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p>バージョン: ${song.category || '不明'}</p>
+                    <p>最高音: ${song.highest_note || '未登録'}</p>
+                    <p>キー: ${song.key || '未登録'}</p>
+                    <p>テンポ: ${song.tempo || '未登録'}</p>
+                    <p>最終更新: ${song.last_updated}</p>
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="loadAndPlay(${index})" class="flex-grow py-4 bg-blue-600 text-white rounded-xl font-bold">再生する</button>
+                    <button onclick="addToPlaylist(${index})" class="py-4 px-6 bg-gray-200 text-gray-700 rounded-xl font-bold">+</button>
+                </div>
             `;
             document.getElementById('listScreen').classList.add('hidden');
             document.getElementById('playerScreen').classList.remove('hidden');
+        }
+
+        function addToPlaylist(index) {
+            playList.push(allSongs[index]);
+            alert(allSongs[index].title + ' をリストに追加しました');
         }
 
         function loadAndPlay(index) {
