@@ -1,0 +1,14 @@
+/* プレイヤーの進捗バーなどの微調整用 */
+#progressBar {
+    transition: width 0.1s linear;
+}
+
+/* モバイルでのタップ範囲を確保するための調整 */
+button {
+    touch-action: manipulation;
+}
+
+/* スクロール時の見た目制御 */
+body {
+    -webkit-tap-highlight-color: transparent;
+}
