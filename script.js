@@ -36,10 +36,11 @@ function showPlayer(index) {
     const listScreen = document.getElementById('listScreen');
     const content = document.getElementById('playerContent');
 
+    // 自動再生せず、URLのみセット
     content.innerHTML = `
         <h2 class="text-2xl font-bold mb-1">${song.title}</h2>
         <p class="text-gray-500 mb-6">${song.artist}</p>
-        <audio controls autoplay src="${song.url}" class="w-full"></audio>
+        <audio id="mainAudio" controls src="${song.url}" class="w-full"></audio>
     `;
 
     listScreen.classList.add('hidden');
@@ -48,5 +49,20 @@ function showPlayer(index) {
 
 function showList() {
     document.getElementById('playerScreen').classList.add('hidden');
-    document.getElementById('listScreen').classList.remove('hidden');
+    listScreen.classList.remove('hidden');
+    
+    // リストに戻る際、再生中の音声があれば画面下部にミニプレイヤーを表示
+    updateMiniPlayer();
+}
+
+function updateMiniPlayer() {
+    const audio = document.getElementById('mainAudio');
+    const miniPlayer = document.getElementById('miniPlayer');
+    
+    if (audio && !audio.paused) {
+        miniPlayer.classList.remove('hidden');
+        document.getElementById('miniPlayerContent').innerHTML = `
+            <p class="text-sm font-bold truncate">再生中: ${allSongs.find(s => s.url === audio.src)?.title || '楽曲'}</p>
+        `;
+    }
 }
