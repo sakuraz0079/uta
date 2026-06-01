@@ -8,168 +8,158 @@
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen pb-24">
     <div class="max-w-md mx-auto p-4">
-        <!-- ナビゲーション -->
-        <nav class="flex gap-4 mb-6 text-sm font-bold text-gray-500 overflow-x-auto pb-2">
-            <button onclick="renderList('全楽曲')" class="whitespace-nowrap">全楽曲</button>
-            <button onclick="showScreen('playlistScreen')" class="whitespace-nowrap text-blue-600">再生リスト</button>
+        <nav class="flex gap-4 mb-6 text-sm font-bold text-gray-500 overflow-x-auto pb-2 border-b">
+            <button onclick="showScreen('listScreen')" class="whitespace-nowrap text-blue-600">全楽曲</button>
+            <button onclick="showPlaylist()" class="whitespace-nowrap">再生リスト</button>
         </nav>
 
-        <!-- 再生リスト管理画面 -->
+        <div id="listScreen">
+            <h1 class="text-2xl font-extrabold mb-4">全楽曲</h1>
+            <input type="text" id="searchInput" placeholder="曲名やアーティストで検索..." oninput="resetPageAndFilter()" class="w-full p-3 mb-4 border rounded-xl shadow-sm">
+            <div id="songList" class="space-y-3">読み込み中...</div>
+            <div id="moreContainer" class="mt-6 hidden">
+                <button onclick="loadMore()" class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-bold">さらに読み込む</button>
+            </div>
+        </div>
+
         <div id="playlistScreen" class="hidden">
             <h1 class="text-2xl font-extrabold mb-4">再生リスト</h1>
-            <div class="flex gap-2 mb-4">
-                <input id="newPlaylistName" type="text" placeholder="新規リスト名" class="flex-grow p-2 border rounded">
-                <button onclick="createPlaylist()" class="bg-blue-600 text-white px-4 rounded font-bold">+</button>
-            </div>
-            <div id="playlistList" class="space-y-2"></div>
+            <div id="playlistContainer" class="space-y-4"></div>
         </div>
 
-        <!-- 楽曲リスト画面 -->
-        <div id="listScreen">
-            <div class="flex justify-between items-center mb-4">
-                <h1 id="listTitle" class="text-2xl font-extrabold">全楽曲</h1>
-                <button onclick="showScreen('playlistScreen')" class="text-sm text-blue-600">リスト選択</button>
-            </div>
-            <div id="songList" class="space-y-3">読み込み中...</div>
-        </div>
-
-        <!-- プレイヤー詳細画面 -->
         <div id="playerScreen" class="hidden">
             <button onclick="showScreen('listScreen')" class="mb-4 text-blue-600 font-bold">&larr; リストに戻る</button>
-            <div id="playerContent" class="bg-white p-8 rounded-3xl shadow-lg"></div>
-        </div>
-
-        <!-- ミニプレイヤー -->
-        <div id="miniPlayer" class="hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-2xl z-50">
-            <p id="miniTitle" class="text-sm font-bold mb-2 truncate text-center"></p>
-            <div class="flex justify-center items-center gap-6 text-2xl">
-                <button onclick="togglePlay()" id="mainPlayBtn" class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center">▶</button>
-            </div>
+            <div id="playerContent" class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100"></div>
         </div>
     </div>
 
     <script>
         let allSongs = [];
-        let audioPlayer = new Audio();
-        let playlists = JSON.parse(localStorage.getItem('myPlaylists')) || { 
-            "最新20曲": [], 
-            "お気に入り": [] 
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadData();
-            updateLatest20();
-            renderList('全楽曲');
-        });
+        let filteredSongs = [];
+        let displayCount = 20;
+        let playlist = JSON.parse(localStorage.getItem('myPlaylist')) || [];
+        const audioPlayer = new Audio();
+        const API_URL = "https://script.google.com/macros/s/AKfycbzyZp7_HO5TsYlREel12IxcPXpEBL6zydkhe0jGFH_VDkvAlip22p0EpFUdpNLSQaWiWg/exec";
 
         async function loadData() {
             try {
-                const response = await fetch('data.json');
+                const response = await fetch(API_URL);
                 allSongs = await response.json();
-            } catch (error) {
-                console.error("data.jsonの読み込みに失敗しました:", error);
-                document.getElementById('songList').innerHTML = '<p class="text-red-500">楽曲データの読み込みに失敗しました。</p>';
-            }
+                allSongs.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
+                filteredSongs = allSongs;
+                renderList();
+            } catch (e) { document.getElementById('songList').innerText = "データ読み込み失敗"; }
         }
 
-        function updateLatest20() {
-            playlists["最新20曲"] = [...allSongs].sort((a,b) => new Date(b.last_updated) - new Date(a.last_updated)).slice(0, 20);
-            localStorage.setItem('myPlaylists', JSON.stringify(playlists));
+        function resetPageAndFilter() {
+            displayCount = 20;
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            filteredSongs = allSongs.filter(s => 
+                (s.title || "").toLowerCase().includes(keyword) || (s.artist || "").toLowerCase().includes(keyword)
+            );
+            renderList();
         }
 
-        function renderList(targetPlaylist = "全楽曲") {
-            document.getElementById('listTitle').innerText = targetPlaylist;
-            const list = document.getElementById('songList');
-            let songs = (targetPlaylist === "全楽曲") ? [...allSongs].sort((a,b) => new Date(b.last_updated) - new Date(a.last_updated)) : (playlists[targetPlaylist] || []);
+        function loadMore() {
+            displayCount += 20;
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('songList');
+            const moreContainer = document.getElementById('moreContainer');
+            const toDisplay = filteredSongs.slice(0, displayCount);
             
-            list.innerHTML = songs.map((song) => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
-                    <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold">▶</button>
-                    <div class="flex-grow cursor-pointer" onclick="showDetail('${song.id}')">
-                        <h2 class="font-bold">${song.title}</h2>
-                        <p class="text-xs text-gray-500">${song.artist}</p>
+            container.innerHTML = toDisplay.map(s => {
+                const count = parseInt(s.retake_count) || 0;
+                const stars = s.quality_score ? '★'.repeat(Math.min(s.quality_score, 5)) : '';
+                return `
+                <div class="bg-white p-4 rounded-xl border flex items-center gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center cursor-pointer" onclick="loadAndPlay('${s.url}', '${s.title}')">▶</div>
+                    <div class="flex-grow cursor-pointer" onclick="showDetail('${s.id}')">
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-bold text-sm truncate">${s.title}</h2>
+                            ${count > 0 ? `<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">RE:${count}</span>` : ''}
+                        </div>
+                        <p class="text-[10px] text-gray-500">${s.artist}</p>
+                        <div class="text-[10px] text-yellow-500">${stars}</div>
                     </div>
+                    <button onclick="addToPlaylist('${s.id}')" class="text-xl text-gray-400 hover:text-blue-600">+</button>
                 </div>
-            `).join('');
-            showScreen('listScreen');
+            `}).join('');
+            
+            moreContainer.classList.toggle('hidden', displayCount >= filteredSongs.length);
         }
 
-        function showDetail(songId) {
-            const song = allSongs.find(s => s.id === songId);
-            const fileName = song.url.split('/').pop().replace('.wav', '');
-            const version = fileName.split('_').pop();
-            const currentListNames = Object.keys(playlists).filter(name => playlists[name].find(s => s.id === song.id));
+        function loadAndPlay(url, title) {
+            audioPlayer.src = url;
+            audioPlayer.play();
+            alert(title + ' を再生します');
+        }
 
+        function showDetail(id) {
+            const s = allSongs.find(song => song.id == id);
+            const count = parseInt(s.retake_count) || 0;
+            const stars = s.quality_score ? '★'.repeat(Math.min(s.quality_score, 5)) : '';
+            const date = new Date(s.last_updated);
+            const formattedDate = !isNaN(date) ? `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}` : "";
+            
             document.getElementById('playerContent').innerHTML = `
-                <div class="space-y-4 text-left">
-                    <h2 class="text-2xl font-bold text-center">${song.title}</h2>
-                    <p class="text-gray-500 text-center mb-4">${song.artist}</p>
-                    <button onclick="loadAndPlaySong('${song.url}', '${song.title}')" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold mb-4">再生する</button>
-                    <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                        <p><b>歌い直し:</b> ${song.is_retake ? 'はい' : 'いいえ'}</p>
-                        <p><b>バージョン:</b> ${version}</p>
-                        <p><b>所属リスト:</b> ${currentListNames.map(name => `<button onclick="renderList('${name}')" class="text-blue-600 underline">${name}</button>`).join(', ') || 'なし'}</p>
-                    </div>
-                    <select id="playlistSelect" class="w-full p-2 border rounded mt-4">
-                        ${Object.keys(playlists).map(n => `<option value="${n}">${n}</option>`).join('')}
-                    </select>
-                    <button onclick="addToPlaylist('${song.id}')" class="w-full py-2 bg-gray-800 text-white rounded font-bold">リストに追加</button>
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-extrabold mb-1">${s.title}</h2>
+                    <p class="text-lg text-gray-600">${s.artist}</p>
+                    <div class="text-yellow-500 text-2xl my-2">${stars}</div>
+                    <button onclick="loadAndPlay('${s.url}', '${s.title}')" class="w-full mt-4 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg">再生ボタン ▶</button>
                 </div>
+                <div class="bg-gray-50 p-4 rounded-xl mb-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[10px] text-gray-400 font-bold">最高音</p><p class="font-bold">${s.highest_note || '-'}</p></div>
+                        <div><p class="text-[10px] text-gray-400 font-bold">キー</p><p class="font-bold">${s.key || '-'}</p></div>
+                    </div>
+                    <p class="text-xs text-gray-400">歌いなおし回数: ${count > 0 ? count + '回' : 'なし'}</p>
+                    <p class="text-xs text-gray-400">最終更新日: ${formattedDate}</p>
+                    <p class="text-sm border-t pt-2 mt-2">${s.memo || 'メモなし'}</p>
+                </div>
+                <button onclick="addToPlaylist('${s.id}')" class="w-full py-3 bg-gray-800 text-white rounded-xl font-bold">再生リストに追加</button>
             `;
             showScreen('playerScreen');
         }
 
-        function renderPlaylists() {
-            const list = document.getElementById('playlistList');
-            list.innerHTML = Object.keys(playlists).map(name => `
-                <div class="bg-white p-4 rounded-xl border flex justify-between items-center">
-                    <button onclick="renderList('${name}')" class="font-bold">${name}</button>
-                    ${name !== "最新20曲" && name !== "お気に入り" ? `<button onclick="deletePlaylist('${name}')" class="text-red-500 text-xs">削除</button>` : ''}
-                </div>
-            `).join('');
+        function showPlaylist() {
+            showScreen('playlistScreen');
+            const container = document.getElementById('playlistContainer');
+            const latest = allSongs.slice(0, 20);
+            container.innerHTML = `
+                <h2 class="font-bold text-gray-700">最新20曲</h2>
+                <div class="space-y-1">${latest.map(s => `<p class="text-sm border-b pb-1">${s.title}</p>`).join('')}</div>
+                <h2 class="font-bold text-gray-700 mt-6">手動追加リスト</h2>
+                <div class="space-y-2">${playlist.map(id => {
+                    const s = allSongs.find(x => x.id == id);
+                    return s ? `<div class="flex justify-between text-sm bg-white p-2 rounded border"><span>${s.title}</span><button onclick="removeFromPlaylist('${id}')" class="text-red-400">×</button></div>` : '';
+                }).join('')}</div>
+            `;
         }
 
-        function createPlaylist() {
-            const name = document.getElementById('newPlaylistName').value;
-            if(name && !playlists[name]) {
-                playlists[name] = [];
-                localStorage.setItem('myPlaylists', JSON.stringify(playlists));
-                renderPlaylists();
+        function addToPlaylist(id) {
+            if (!playlist.includes(id)) {
+                playlist.push(id);
+                localStorage.setItem('myPlaylist', JSON.stringify(playlist));
+                alert('リストに追加しました');
             }
         }
 
-        function deletePlaylist(name) {
-            delete playlists[name];
-            localStorage.setItem('myPlaylists', JSON.stringify(playlists));
-            renderPlaylists();
-        }
-
-        function addToPlaylist(songId) {
-            const name = document.getElementById('playlistSelect').value;
-            const song = allSongs.find(s => s.id === songId);
-            if(!playlists[name].find(s => s.id === songId)) {
-                playlists[name].push(song);
-                localStorage.setItem('myPlaylists', JSON.stringify(playlists));
-                alert('追加しました');
-            }
+        function removeFromPlaylist(id) {
+            playlist = playlist.filter(x => x !== id);
+            localStorage.setItem('myPlaylist', JSON.stringify(playlist));
+            showPlaylist();
         }
 
         function showScreen(id) {
             ['listScreen', 'playlistScreen', 'playerScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'playlistScreen') renderPlaylists();
         }
 
-        function loadAndPlaySong(url, title) {
-            audioPlayer.src = url;
-            audioPlayer.play();
-            document.getElementById('miniPlayer').classList.remove('hidden');
-            document.getElementById('miniTitle').innerText = title;
-        }
-
-        function togglePlay() {
-            audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
-        }
+        loadData();
     </script>
 </body>
 </html>
